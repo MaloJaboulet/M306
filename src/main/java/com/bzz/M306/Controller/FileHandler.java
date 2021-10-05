@@ -17,29 +17,41 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TreeMap;
 
+/**
+ * @author Malo Jaboulet
+ * @version 1.0
+ * <p>
+ * Diese Klasse hat alle Methoden, die mit den SDAT- und ESL-Files zu tun haben.
+ * Diese Klasse hat Methoden, die die Files lesen und die Daten dann in eine TreeMap speichern.
+ * @since 04.10.2021
+ */
 public class FileHandler {
     private TreeMap<Long, Data> sdatData;
-
     private double eslDataBezug;
     private double eslDataEinspeisung;
     private static FileHandler fileHandler;
-    private long tempTime;
-    private double tempData;
 
 
+    /**
+     * Private Konstruktor, weil die Klasse ein Singolton ist.
+     */
     private FileHandler() {
         sdatData = new TreeMap<>();
         eslDataEinspeisung = 0;
         eslDataBezug = 0;
-        tempData = 0;
-        tempTime = 0;
 
         readESL();
         readSDAT();
     }
 
+    /**
+     * Liest alle SDAT-Files und holt die Daten aus ihnen heraus.
+     * <b>Wichtig</b>: Die SDAT-Files müssen unter "src/main/java/XMLfiles/SDAT-Files" gespeichert sein, sonst können
+     * die Daten nicht gelesen werden.
+     */
     public void readSDAT() {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        //Liest alle Files im Ordner "SDAT-Files"
         File[] files = new File("./src/main/java/XMLfiles/SDAT-Files").listFiles();
         DocumentBuilder builder = null;
         TreeMap<Long, Double> tempMap = new TreeMap<>();
@@ -48,39 +60,47 @@ public class FileHandler {
             builder = factory.newDocumentBuilder();
 
             for (File filname : files) {
-                Document document = builder.parse(filname);
+                Document document = builder.parse(filname); //Parsed das XML-File
                 document.getDocumentElement().normalize();
                 long milliSceonds = 0;
 
+                //Holt die Startzeit
                 NodeList intervalList = document.getElementsByTagName("rsm:Interval");
                 Node interval = intervalList.item(0);
                 if (interval.getNodeType() == Node.ELEMENT_NODE) {
                     Element intervalElement = (Element) interval;
-                    milliSceonds = convertDate(intervalElement);
+                    milliSceonds = convertDate(intervalElement);    //Convertiert String zu Millisekunden
                 }
 
-
+                //Holt alle Daten mit den Verbrauchswerten
                 NodeList observationList = document.getElementsByTagName("rsm:Observation");
                 for (int i = 0; i < observationList.getLength(); i++) {
                     Node observation = observationList.item(i);
 
                     if (observation.getNodeType() == Node.ELEMENT_NODE) {
                         Element observationElement = (Element) observation;
-                        Data data = new Data(getEslDataEinspeisung(),getEslDataBezug());
-                        double value = Double.parseDouble(observationElement.getElementsByTagName("rsm:Volume").item(0).getTextContent());
-                        if (value == 0){
-                            continue;
-                        }else {
 
-                            milliSceonds = milliSceonds + 900000;
+                        Data data = new Data(getEslDataEinspeisung(), getEslDataBezug());
+                        //Liest den Verbrauchswert
+                        double value = Double.parseDouble(observationElement.getElementsByTagName("rsm:Volume")
+                                .item(0).getTextContent());
 
+                        //Wenn Wert nicht 0 geht es weiter
+                        if (value != 0) {
+                            milliSceonds = milliSceonds + 900000; //15 Min
+
+                            //Holt die ID des Files
                             NodeList idList = document.getElementsByTagName("rsm:InstanceDocument");
                             Node id = idList.item(0);
 
                             if (id.getNodeType() == Node.ELEMENT_NODE) {
                                 Element idElement = (Element) id;
-                                String idS = idElement.getElementsByTagName("rsm:DocumentID").item(0).getTextContent();
-                                idS = idS.split("_")[2];
+                                String idS = idElement.getElementsByTagName("rsm:DocumentID")
+                                        .item(0).getTextContent();
+
+                                idS = idS.split("_")[2]; //Nimmt nur die ID
+
+                                //ID742 = Strom Bezug, ID735 = Strom Einspeisung
                                 if (idS.equals("ID742")) {
                                     data.setRelativBezug(value);
                                     setEslDataBezug(data.getZaehlerstandBezug());
@@ -89,23 +109,24 @@ public class FileHandler {
                                     setEslDataEinspeisung(data.getZaehlerstandBezug());
                                 }
                             }
-                            sdatData.put(milliSceonds, data);
+                            sdatData.put(milliSceonds, data); //Speichert die Daten ab
                         }
                     }
                 }
             }
-        } catch (ParserConfigurationException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (SAXException e) {
+        } catch (ParserConfigurationException | IOException | SAXException e) {
             e.printStackTrace();
         }
     }
 
-
+    /**
+     * Liest alle ESL-Files und holt die Daten aus diesem File heraus.
+     * <b>Wichtig</b>: Das ESL-File müss unter "src/main/java/XMLfiles/ESL-Files" gespeichert sein, sonst können
+     * die Daten nicht gelesen werden.
+     */
     public void readESL() {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        //Liest das File
         File[] files = new File("./src/main/java/XMLfiles/ESL-Files").listFiles();
         DocumentBuilder builder = null;
 
@@ -116,6 +137,7 @@ public class FileHandler {
                 Document document = builder.parse(filname);
                 document.getDocumentElement().normalize();
 
+                //Holt die Werte
                 NodeList observationList = document.getElementsByTagName("ValueRow");
 
                 double value1 = 0;
@@ -125,10 +147,14 @@ public class FileHandler {
 
                     if (observation.getNodeType() == Node.ELEMENT_NODE) {
                         Element observationElement = (Element) observation;
-                        if (observationElement.getAttribute("obis").equals("1-1:1.8.1") || observationElement.getAttribute("obis").equals("1-1:1.8.2")) {
+                        //Zählerwert vom Bezug
+                        if (observationElement.getAttribute("obis").equals("1-1:1.8.1") ||
+                                observationElement.getAttribute("obis").equals("1-1:1.8.2")) {
 
-                            value1= value1 + Double.parseDouble(observationElement.getAttribute("value"));
-                        }else if (observationElement.getAttribute("obis").equals("1-1:2.8.1") || observationElement.getAttribute("obis").equals("1-1:2.8.2")){
+                            value1 = value1 + Double.parseDouble(observationElement.getAttribute("value"));
+                            //Zählerwert von der Einspeisung
+                        } else if (observationElement.getAttribute("obis").equals("1-1:2.8.1") ||
+                                observationElement.getAttribute("obis").equals("1-1:2.8.2")) {
 
                             value2 = value2 + Double.parseDouble(observationElement.getAttribute("value"));
                         }
@@ -137,18 +163,21 @@ public class FileHandler {
                 eslDataBezug = value1;
                 eslDataEinspeisung = value2;
             }
-        } catch (ParserConfigurationException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (SAXException e) {
+        } catch (ParserConfigurationException | IOException | SAXException e) {
             e.printStackTrace();
         }
     }
 
+    /**
+     * Convertiert den String mit dem Datum und der Uhrzeit in Millisekunden um.
+     *
+     * @param intervalElement das Element mit dem Datum und der Uhrzeit
+     * @return das Datum in Millisekunden
+     */
     public long convertDate(Element intervalElement) {
-        String dateS = intervalElement.getElementsByTagName("rsm:StartDateTime").item(0).getTextContent().split("T")[0];
-        String timeS = intervalElement.getElementsByTagName("rsm:StartDateTime").item(0).getTextContent().split("T")[1];
+        String startTime = intervalElement.getElementsByTagName("rsm:StartDateTime").item(0).getTextContent();
+        String dateS = startTime.split("T")[0]; //Datum
+        String timeS = startTime.split("T")[1]; //Uhrzeit
         timeS = timeS.split("Z")[0];
 
         Date date = null;
@@ -166,50 +195,74 @@ public class FileHandler {
         return milliSeconds;
     }
 
+    /**
+     * Holt die TreeMap mit den Daten der SDAT-Files
+     *
+     * @return die Daten
+     */
     public TreeMap<Long, Data> getSdatData() {
         return sdatData;
     }
 
+    /**
+     * Setzt die TreeMap mit den Daten
+     *
+     * @param sdatData die Daten der SDAT-Files
+     */
     public void setSdatData(TreeMap<Long, Data> sdatData) {
         this.sdatData = sdatData;
     }
 
+    /**
+     * Setzt den FileHandler
+     *
+     * @param fileHandler der FileHandler
+     */
     public static void setFileHandler(FileHandler fileHandler) {
         FileHandler.fileHandler = fileHandler;
     }
 
-    public long getTempTime() {
-        return tempTime;
-    }
-
-    public void setTempTime(long tempTime) {
-        this.tempTime = tempTime;
-    }
-
-    public double getTempData() {
-        return tempData;
-    }
-
-    public void setTempData(double tempData) {
-        this.tempData = tempData;
-    }
-
+    /**
+     * Holt die Daten zu dem Zählerstand des Bezugs.
+     *
+     * @return der Zählerstand
+     */
     public double getEslDataBezug() {
         return eslDataBezug;
     }
 
+    /**
+     * Setzt den Zählerstand des Bezugs.
+     *
+     * @param eslDataBezug der Zählerstand
+     */
     public void setEslDataBezug(double eslDataBezug) {
         this.eslDataBezug = eslDataBezug;
     }
 
+    /**
+     * Holt den Zählerstand der Einspeisung
+     *
+     * @return der Zählerstand
+     */
     public double getEslDataEinspeisung() {
         return eslDataEinspeisung;
     }
 
+    /**
+     * Setzt den Zählerstand der Einspeisung
+     *
+     * @param eslDataEinspeisung der Zählerstand
+     */
     public void setEslDataEinspeisung(double eslDataEinspeisung) {
         this.eslDataEinspeisung = eslDataEinspeisung;
     }
 
+    /**
+     * Holt den FileHandler
+     *
+     * @return der FileHandler
+     */
     public static FileHandler getFileHandler() {
         if (fileHandler == null) fileHandler = new FileHandler();
         return fileHandler;
