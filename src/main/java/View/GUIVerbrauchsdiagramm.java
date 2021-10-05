@@ -64,7 +64,6 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
 
     private static final long serialVersionUID = 1L;
 
-    GUIZaehlerdiagramm guiZaehlerdiagramm;
     private static TimeSeriesCollection dataset = new TimeSeriesCollection();
     private static JFreeChart chart;
 
