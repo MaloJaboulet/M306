@@ -35,7 +35,7 @@ public class FileHandler {
                     int sequence = Integer.parseInt(observationElement.getElementsByTagName("rsm:Sequence").item(0).getTextContent());
                     double value = Double.parseDouble(observationElement.getElementsByTagName("rsm:Volume").item(0).getTextContent());
 
-                    System.out.println("Sequenz: "+ sequence);
+                    System.out.println("Sequenz : "+ sequence);
                     System.out.println("Value: "+ value);
                 }
             }
