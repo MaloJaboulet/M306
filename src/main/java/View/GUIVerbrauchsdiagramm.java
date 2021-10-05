@@ -31,19 +31,21 @@ package View;/* =========================
  */
 
 
+import com.bzz.M306.Data.Data;
+import com.bzz.M306.Data.EnergyData;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
+import org.jfree.chart.event.PlotChangeEvent;
+import org.jfree.chart.event.PlotChangeListener;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.ui.ApplicationFrame;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.chart.ui.UIUtils;
-import org.jfree.data.time.Month;
-import org.jfree.data.time.TimeSeries;
-import org.jfree.data.time.TimeSeriesCollection;
+import org.jfree.data.time.*;
 import org.jfree.data.xy.XYDataset;
 
 import javax.swing.*;
@@ -54,6 +56,8 @@ import java.awt.event.ActionListener;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * An example of a time series chart create using JFreeChart.  For the most
@@ -85,16 +89,21 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
     private JRadioButton verbrauchDiagramm = new JRadioButton("Verbrauchsdiagramm");
     private JRadioButton zaehlerDiagramm = new JRadioButton("Zählerstandsdiagramm");
 
+    private EnergyData energyData;
+    private long centerDay;
+
     /**
      * A demonstration application showing how to create a simple time series
      * chart.  This example uses monthly data.
      *
      * @param title the frame title.
      */
-    public GUIVerbrauchsdiagramm(String title) {
+    public GUIVerbrauchsdiagramm(String title, EnergyData energyData) {
         super(title);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
-        ChartPanel chartPanel = (ChartPanel) createDemoPanel();
+        ChartPanel chartPanel = (ChartPanel) createPanel(energyData);
+        this.energyData = energyData;
+        this.centerDay = 0;
         // chartPanel.setPreferredSize(new java.awt.Dimension(500, 270));
 
         //bExportCSV.setPreferredSize(new Dimension(1,1));
@@ -131,13 +140,13 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
                 if (verbrauchDiagramm.isSelected()) {
                     System.out.println("Verbrauchsdiagramm selected");
                     dataset.removeAllSeries();
-                    createDatasetVerbrauchsdiagramm();
+                    createDatasetVerbrauchsdiagramm(energyData);
                     chart.setTitle("Stromzählerübersicht");
                 }
                 if (zaehlerDiagramm.isSelected()) {
                     System.out.println("Zählerdiagramm selected");
                     dataset.removeAllSeries();
-                    createDatasetZaehlerdiagramm();
+                    createDatasetZaehlerdiagramm(energyData);
                     chart.setTitle("Zählerstand");
                 }
             }
@@ -149,6 +158,20 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
                 //export data to csv-file
             }
         };
+
+        chart.getXYPlot().addChangeListener(new PlotChangeListener() {
+            @Override
+            public void plotChanged(PlotChangeEvent plotChangeEvent) {
+               long upperBound = (long)plotChangeEvent.getPlot().getChart().getXYPlot().getDomainAxis().getUpperBound();
+               long lowerBound = (long)plotChangeEvent.getPlot().getChart().getXYPlot().getDomainAxis().getLowerBound();
+                System.out.println("upper: " +upperBound);
+                System.out.println("lower: " +lowerBound);
+               long center = (upperBound + lowerBound)/2;
+               centerDay = center;
+                System.out.println(centerDay);
+               // chart.getPlot().getChart().getXYPlot().getDomainAxis().
+            }
+        });
 
 
         verbrauchDiagramm.addActionListener(actionListenerDiagramm);
@@ -183,14 +206,15 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
         XYItemRenderer r = plot.getRenderer();
         if (r instanceof XYLineAndShapeRenderer) {
             XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) r;
-            renderer.setDefaultShapesVisible(true);
-            renderer.setDefaultShapesFilled(true);
+            renderer.setDefaultShapesVisible(false);
+            renderer.setDefaultShapesFilled(false);
             renderer.setDrawSeriesLineAsPath(true);
         }
 
         DateAxis axis = (DateAxis) plot.getDomainAxis();
-        axis.setDateFormatOverride(new SimpleDateFormat("MMM-yyyy"));
+        axis.setDateFormatOverride(new SimpleDateFormat("dd-MM-yyyy"));
 
+        System.out.println(axis.getRange());
         return chart;
 
     }
@@ -200,7 +224,7 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
      *
      * @return The dataset.
      */
-    private static XYDataset createDatasetVerbrauchsdiagramm() {
+    private static XYDataset createDatasetVerbrauchsdiagramm(EnergyData energyData) {
         Date date = new Date();
         long test = date.getTime();
         System.out.println(test);
@@ -208,45 +232,17 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
         int month = cal.get(Calendar.MONTH);
 
         TimeSeries s1 = new TimeSeries("Kauf von Strom");
-        s1.add(new Month(2, 2001), 181.8);
-        s1.add(new Month(3, 2001), 167.3);
-        s1.add(new Month(4, 2001), 153.8);
-        s1.add(new Month(5, 2001), 167.6);
-        s1.add(new Month(6, 2001), 158.8);
-        s1.add(new Month(7, 2001), 148.3);
-        s1.add(new Month(8, 2001), 153.9);
-        s1.add(new Month(9, 2001), 142.7);
-        s1.add(new Month(10, 2001), 123.2);
-        s1.add(new Month(11, 2001), 131.8);
-        s1.add(new Month(12, 2001), 139.6);
-        s1.add(new Month(1, 2002), 142.9);
-        s1.add(new Month(2, 2002), 138.7);
-        s1.add(new Month(3, 2002), 137.3);
-        s1.add(new Month(4, 2002), 143.9);
-        s1.add(new Month(5, 2002), 139.8);
-        s1.add(new Month(6, 2002), 137.0);
-        s1.add(new Month(month, 2002), 132.8);
+
+        TreeMap<Long, Data> mapData = energyData.getSdatData();
+
+        for (Map.Entry<Long, Data> entry : mapData.entrySet()) {
+            s1.add(new FixedMillisecond(entry.getKey()), entry.getValue().getRelativBezug());
+        }
 
         TimeSeries s2 = new TimeSeries("Verkauf von Strom");
-        s2.add(new Month(2, 2001), 129.6);
-        s2.add(new Month(3, 2001), 123.2);
-        s2.add(new Month(4, 2001), 117.2);
-        s2.add(new Month(5, 2001), 124.1);
-        s2.add(new Month(6, 2001), 122.6);
-        s2.add(new Month(7, 2001), 119.2);
-        s2.add(new Month(8, 2001), 116.5);
-        s2.add(new Month(9, 2001), 112.7);
-        s2.add(new Month(10, 2001), 101.5);
-        s2.add(new Month(11, 2001), 106.1);
-        s2.add(new Month(12, 2001), 110.3);
-        s2.add(new Month(1, 2002), 111.7);
-        s2.add(new Month(2, 2002), 111.0);
-        s2.add(new Month(3, 2002), 109.6);
-        s2.add(new Month(4, 2002), 113.2);
-        s2.add(new Month(5, 2002), 111.6);
-        s2.add(new Month(6, 2002), 108.8);
-        s2.add(new Month(7, 2002), 101.6);
-
+        for (Map.Entry<Long, Data> entry : mapData.entrySet()) {
+            s2.add(new FixedMillisecond(entry.getKey()), entry.getValue().getRelativeEinspeisung());
+        }
 
         // ******************************************************************
         //  More than 150 demo applications are included with the JFreeChart
@@ -263,27 +259,14 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
 
     }
 
-    private static XYDataset createDatasetZaehlerdiagramm() {
+    private static XYDataset createDatasetZaehlerdiagramm(EnergyData energyData) {
 
         TimeSeries s3 = new TimeSeries("Zählerdiagramm");
-        s3.add(new Month(2, 2001), 150.8);
-        s3.add(new Month(3, 2001), 160.3);
-        s3.add(new Month(4, 2001), 163.8);
-        s3.add(new Month(5, 2001), 167.6);
-        s3.add(new Month(6, 2001), 168.8);
-        s3.add(new Month(7, 2001), 170.3);
-        s3.add(new Month(8, 2001), 173.9);
-        s3.add(new Month(9, 2001), 174.7);
-        s3.add(new Month(10, 2001), 176.2);
-        s3.add(new Month(11, 2001), 180.8);
-        s3.add(new Month(12, 2001), 189.6);
-        s3.add(new Month(1, 2002), 190.9);
-        s3.add(new Month(2, 2002), 191.7);
-        s3.add(new Month(3, 2002), 192.3);
-        s3.add(new Month(4, 2002), 192.9);
-        s3.add(new Month(5, 2002), 193.8);
-        s3.add(new Month(6, 2002), 194.0);
-        s3.add(new Month(7, 2002), 194.8);
+        for (Map.Entry<Long, Data> entry : energyData.getSdatData().entrySet()) {
+            s3.add(new FixedMillisecond(entry.getKey()), entry.getValue().getZaehlerstandBezug());
+        }
+
+
 
         // ******************************************************************
         //  More than 150 demo applications are included with the JFreeChart
@@ -305,8 +288,9 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
      *
      * @return A panel.
      */
-    public static JPanel createDemoPanel() {
-        chart = createChart(createDatasetVerbrauchsdiagramm());
+    public static JPanel createPanel(EnergyData energyData) {
+        chart = createChart(createDatasetVerbrauchsdiagramm(energyData));
+
         ChartPanel panel = new ChartPanel(chart, false);
         panel.setFillZoomRectangle(true);
         panel.setMouseWheelEnabled(true);
@@ -319,9 +303,9 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
      * @param args ignored.
      */
     public static void main(String[] args) {
-
+        EnergyData energyData = new EnergyData();
         GUIVerbrauchsdiagramm demo = new GUIVerbrauchsdiagramm(
-                "Stromzähler");
+                "Stromzähler", energyData);
         //demo.pack();
         UIUtils.centerFrameOnScreen(demo);
         demo.setVisible(true);

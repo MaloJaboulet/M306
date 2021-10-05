@@ -68,25 +68,29 @@ public class FileHandler {
                         Element observationElement = (Element) observation;
                         Data data = new Data(getEslDataEinspeisung(),getEslDataBezug());
                         double value = Double.parseDouble(observationElement.getElementsByTagName("rsm:Volume").item(0).getTextContent());
+                        if (value == 0){
+                            continue;
+                        }else {
 
-                        milliSceonds = milliSceonds + 900000;
+                            milliSceonds = milliSceonds + 900000;
 
-                        NodeList idList = document.getElementsByTagName("rsm:InstanceDocument");
-                        Node id = idList.item(0);
+                            NodeList idList = document.getElementsByTagName("rsm:InstanceDocument");
+                            Node id = idList.item(0);
 
-                        if (id.getNodeType() == Node.ELEMENT_NODE) {
-                            Element idElement = (Element) id;
-                            String idS = idElement.getElementsByTagName("rsm:DocumentID").item(0).getTextContent();
-                            idS = idS.split("_")[2];
-                            if (idS.equals("ID742")) {
-                                data.setRelativBezug(value);
-                                setEslDataEinspeisung(data.getZaehlerstandBezug());
-                            } else {
-                                data.setRelativeEinspeisung(value);
-                                setEslDataBezug(data.getZaehlerstandBezug());
+                            if (id.getNodeType() == Node.ELEMENT_NODE) {
+                                Element idElement = (Element) id;
+                                String idS = idElement.getElementsByTagName("rsm:DocumentID").item(0).getTextContent();
+                                idS = idS.split("_")[2];
+                                if (idS.equals("ID742")) {
+                                    data.setRelativBezug(value);
+                                    setEslDataBezug(data.getZaehlerstandBezug());
+                                } else {
+                                    data.setRelativeEinspeisung(value);
+                                    setEslDataEinspeisung(data.getZaehlerstandBezug());
+                                }
                             }
+                            sdatData.put(milliSceonds, data);
                         }
-                        sdatData.put(milliSceonds, data);
                     }
                 }
             }
