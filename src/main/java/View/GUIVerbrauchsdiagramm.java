@@ -1,5 +1,5 @@
 package View;/* =========================
- * TimeSeriesChartDemo1.java
+ * GUIVerbrauchsdiagramm.java
  * =========================
  *
  * (C) Copyright 2003-2021, by Object Refinery Limited.
@@ -47,25 +47,41 @@ import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.data.xy.XYDataset;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  * An example of a time series chart create using JFreeChart.  For the most
  * part, default settings are used, except that the renderer is modified to
  * show filled shapes (as well as lines) at each data point.
  */
-public class TimeSeriesChartDemo1 extends ApplicationFrame {
+public class GUIVerbrauchsdiagramm extends ApplicationFrame {
 
     private static final long serialVersionUID = 1L;
 
-    private JPanel pHeader = new JPanel();
-    private JPanel pRadiobuttons = new JPanel();
+    private static TimeSeriesCollection dataset = new TimeSeriesCollection();
+    private static JFreeChart chart;
+
+
+    private JLabel lDay = new JLabel("Tag", SwingConstants.CENTER);
+    private JLabel lCurrentDate = new JLabel("automatisch 15.03.21", SwingConstants.CENTER);
+    private JLabel lEmpty = new JLabel("");
+
+    private JPanel pHeader = new JPanel(new GridLayout(1, 3));
+    private JPanel pRadiobuttons = new JPanel(new GridLayout(2, 1));
     private JPanel pSkipDay = new JPanel();
+    private JPanel pDate = new JPanel(new GridLayout(2, 1));
+    private JPanel pCsv = new JPanel(new GridLayout(3, 3));
 
     private JButton bExportCSV = new JButton("Export to CSV");
     private JButton bBackwards = new JButton("<");
     private JButton bForwards = new JButton(">");
+    private ButtonGroup buttonGroup = new ButtonGroup();
     private JRadioButton verbrauchDiagramm = new JRadioButton("Verbrauchsdiagramm");
     private JRadioButton zaehlerDiagramm = new JRadioButton("Zählerstandsdiagramm");
 
@@ -73,40 +89,85 @@ public class TimeSeriesChartDemo1 extends ApplicationFrame {
      * A demonstration application showing how to create a simple time series
      * chart.  This example uses monthly data.
      *
-     * @param title  the frame title.
+     * @param title the frame title.
      */
-    public TimeSeriesChartDemo1(String title) {
+    public GUIVerbrauchsdiagramm(String title) {
         super(title);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         ChartPanel chartPanel = (ChartPanel) createDemoPanel();
-        chartPanel.setPreferredSize(new java.awt.Dimension(500, 270));
+        // chartPanel.setPreferredSize(new java.awt.Dimension(500, 270));
 
+        //bExportCSV.setPreferredSize(new Dimension(1,1));
+
+        buttonGroup.add(verbrauchDiagramm);
+        buttonGroup.add(zaehlerDiagramm);
         pRadiobuttons.add(verbrauchDiagramm);
         pRadiobuttons.add(zaehlerDiagramm);
+        pRadiobuttons.setBorder(new EmptyBorder(0, 20, 0, 0));
+        verbrauchDiagramm.setSelected(true);
+
         pSkipDay.add(bBackwards, BorderLayout.WEST);
+        pSkipDay.add(lDay, BorderLayout.CENTER);
         pSkipDay.add(bForwards, BorderLayout.EAST);
 
+        pDate.add(lCurrentDate);
+        pDate.add(pSkipDay);
 
-        pHeader.add(pRadiobuttons, BorderLayout.WEST);
-        pHeader.add(pSkipDay, BorderLayout.CENTER);
-        pHeader.add(bExportCSV, BorderLayout.EAST);
+        pCsv.add(lEmpty);
+        pCsv.add(bExportCSV);
+
+
+        pHeader.add(pRadiobuttons);
+        pHeader.add(pDate);
+        pHeader.add(pCsv);
 
         this.add(chartPanel, BorderLayout.CENTER);
         this.add(pHeader, BorderLayout.NORTH);
+
+        //Actionlistener
+        ActionListener actionListenerDiagramm = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (verbrauchDiagramm.isSelected()) {
+                    System.out.println("Verbrauchsdiagramm selected");
+                    dataset.removeAllSeries();
+                    createDatasetVerbrauchsdiagramm();
+                    chart.setTitle("Stromzählerübersicht");
+                }
+                if (zaehlerDiagramm.isSelected()) {
+                    System.out.println("Zählerdiagramm selected");
+                    dataset.removeAllSeries();
+                    createDatasetZaehlerdiagramm();
+                    chart.setTitle("Zählerstand");
+                }
+            }
+        };
+
+        ActionListener actionListenerCSV = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //export data to csv-file
+            }
+        };
+
+
+        verbrauchDiagramm.addActionListener(actionListenerDiagramm);
+        zaehlerDiagramm.addActionListener(actionListenerDiagramm);
+        bExportCSV.addActionListener(actionListenerCSV);
     }
 
     /**
      * Creates a chart.
      *
-     * @param dataset  a dataset.
-     *
+     * @param dataset a dataset.
      * @return A chart.
      */
     private static JFreeChart createChart(XYDataset dataset) {
 
-        JFreeChart chart = ChartFactory.createTimeSeriesChart(
-                "Legal & General Unit Trust Prices",  // title
-                "Date",             // x-axis label
-                "Price Per Unit",   // y-axis label
+        chart = ChartFactory.createTimeSeriesChart(
+                "Stromzählerübersicht",  // title
+                "Datum",             // x-axis label
+                "kWh",   // y-axis label
                 dataset);
 
         chart.setBackgroundPaint(Color.WHITE);
@@ -139,9 +200,14 @@ public class TimeSeriesChartDemo1 extends ApplicationFrame {
      *
      * @return The dataset.
      */
-    private static XYDataset createDataset() {
+    private static XYDataset createDatasetVerbrauchsdiagramm() {
+        Date date = new Date();
+        long test = date.getTime();
+        System.out.println(test);
+        Calendar cal = Calendar.getInstance();
+        int month = cal.get(Calendar.MONTH);
 
-        TimeSeries s1 = new TimeSeries("L&G European Index Trust");
+        TimeSeries s1 = new TimeSeries("Kauf von Strom");
         s1.add(new Month(2, 2001), 181.8);
         s1.add(new Month(3, 2001), 167.3);
         s1.add(new Month(4, 2001), 153.8);
@@ -159,9 +225,9 @@ public class TimeSeriesChartDemo1 extends ApplicationFrame {
         s1.add(new Month(4, 2002), 143.9);
         s1.add(new Month(5, 2002), 139.8);
         s1.add(new Month(6, 2002), 137.0);
-        s1.add(new Month(7, 2002), 132.8);
+        s1.add(new Month(month, 2002), 132.8);
 
-        TimeSeries s2 = new TimeSeries("L&G UK Index Trust");
+        TimeSeries s2 = new TimeSeries("Verkauf von Strom");
         s2.add(new Month(2, 2001), 129.6);
         s2.add(new Month(3, 2001), 123.2);
         s2.add(new Month(4, 2001), 117.2);
@@ -181,6 +247,7 @@ public class TimeSeriesChartDemo1 extends ApplicationFrame {
         s2.add(new Month(6, 2002), 108.8);
         s2.add(new Month(7, 2002), 101.6);
 
+
         // ******************************************************************
         //  More than 150 demo applications are included with the JFreeChart
         //  Developer Guide...for more information, see:
@@ -189,7 +256,6 @@ public class TimeSeriesChartDemo1 extends ApplicationFrame {
         //
         // ******************************************************************
 
-        TimeSeriesCollection dataset = new TimeSeriesCollection();
         dataset.addSeries(s1);
         dataset.addSeries(s2);
 
@@ -197,13 +263,50 @@ public class TimeSeriesChartDemo1 extends ApplicationFrame {
 
     }
 
+    private static XYDataset createDatasetZaehlerdiagramm() {
+
+        TimeSeries s3 = new TimeSeries("Zählerdiagramm");
+        s3.add(new Month(2, 2001), 150.8);
+        s3.add(new Month(3, 2001), 160.3);
+        s3.add(new Month(4, 2001), 163.8);
+        s3.add(new Month(5, 2001), 167.6);
+        s3.add(new Month(6, 2001), 168.8);
+        s3.add(new Month(7, 2001), 170.3);
+        s3.add(new Month(8, 2001), 173.9);
+        s3.add(new Month(9, 2001), 174.7);
+        s3.add(new Month(10, 2001), 176.2);
+        s3.add(new Month(11, 2001), 180.8);
+        s3.add(new Month(12, 2001), 189.6);
+        s3.add(new Month(1, 2002), 190.9);
+        s3.add(new Month(2, 2002), 191.7);
+        s3.add(new Month(3, 2002), 192.3);
+        s3.add(new Month(4, 2002), 192.9);
+        s3.add(new Month(5, 2002), 193.8);
+        s3.add(new Month(6, 2002), 194.0);
+        s3.add(new Month(7, 2002), 194.8);
+
+        // ******************************************************************
+        //  More than 150 demo applications are included with the JFreeChart
+        //  Developer Guide...for more information, see:
+        //
+        //  >   http://www.object-refinery.com/jfreechart/guide.html
+        //
+        // ******************************************************************
+
+        dataset.addSeries(s3);
+
+        return dataset;
+
+    }
+
+
     /**
      * Creates a panel for the demo (used by SuperDemo.java).
      *
      * @return A panel.
      */
     public static JPanel createDemoPanel() {
-        JFreeChart chart = createChart(createDataset());
+        chart = createChart(createDatasetVerbrauchsdiagramm());
         ChartPanel panel = new ChartPanel(chart, false);
         panel.setFillZoomRectangle(true);
         panel.setMouseWheelEnabled(true);
@@ -213,16 +316,20 @@ public class TimeSeriesChartDemo1 extends ApplicationFrame {
     /**
      * Starting point for the demonstration application.
      *
-     * @param args  ignored.
+     * @param args ignored.
      */
     public static void main(String[] args) {
 
-        TimeSeriesChartDemo1 demo = new TimeSeriesChartDemo1(
-                "Time Series Chart Demo 1");
-        demo.pack();
+        GUIVerbrauchsdiagramm demo = new GUIVerbrauchsdiagramm(
+                "Stromzähler");
+        //demo.pack();
         UIUtils.centerFrameOnScreen(demo);
         demo.setVisible(true);
 
+    }
+
+    public JFrame getJFrame() {
+        return this;
     }
 
 }
