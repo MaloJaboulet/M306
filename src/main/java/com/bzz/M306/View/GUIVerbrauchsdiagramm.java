@@ -1,4 +1,4 @@
-package View;/* =========================
+package com.bzz.M306.View;/* =========================
  * GUIVerbrauchsdiagramm.java
  * =========================
  *
