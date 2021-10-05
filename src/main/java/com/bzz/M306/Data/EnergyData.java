@@ -33,6 +33,13 @@ public class EnergyData {
         this.eslDataEinspeisung = eslDataEinspeisung;
     }
 
+    public TreeMap<Long, Data> getSdatData() {
+        return sdatData;
+    }
+
+    public void setSdatData(TreeMap<Long, Data> sdatData) {
+        this.sdatData = sdatData;
+    }
 
     public static void main(String[] args) {
         EnergyData energyData = new EnergyData();
