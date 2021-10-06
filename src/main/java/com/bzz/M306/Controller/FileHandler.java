@@ -29,6 +29,8 @@ public class FileHandler {
     private TreeMap<Long, Data> sdatData;
     private double zaehlerstandBezug;
     private double zaehlerstandEinspeisung;
+    private double anfangbestandBezug;
+    private double anfangbestandEinspeiung;
     private static FileHandler fileHandler;
 
 
@@ -179,7 +181,9 @@ public class FileHandler {
                     }
                 }
                 zaehlerstandBezug = value1;
+                anfangbestandBezug = value1;
                 zaehlerstandEinspeisung = value2;
+                anfangbestandEinspeiung = value2;
             }
         } catch (ParserConfigurationException | IOException | SAXException e) {
             e.printStackTrace();
