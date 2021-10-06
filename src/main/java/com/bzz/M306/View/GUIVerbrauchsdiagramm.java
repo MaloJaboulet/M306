@@ -164,11 +164,11 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
             public void plotChanged(PlotChangeEvent plotChangeEvent) {
                long upperBound = (long)plotChangeEvent.getPlot().getChart().getXYPlot().getDomainAxis().getUpperBound();
                long lowerBound = (long)plotChangeEvent.getPlot().getChart().getXYPlot().getDomainAxis().getLowerBound();
-                System.out.println("upper: " +upperBound);
-                System.out.println("lower: " +lowerBound);
+                //System.out.println("upper: " +upperBound);
+                //System.out.println("lower: " +lowerBound);
                long center = (upperBound + lowerBound)/2;
                centerDay = center;
-                System.out.println(centerDay);
+               // System.out.println(centerDay);
                // chart.getPlot().getChart().getXYPlot().getDomainAxis().
             }
         });
@@ -227,7 +227,6 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
     private static XYDataset createDatasetVerbrauchsdiagramm(EnergyData energyData) {
         Date date = new Date();
         long test = date.getTime();
-        System.out.println(test);
         Calendar cal = Calendar.getInstance();
         int month = cal.get(Calendar.MONTH);
 
@@ -235,7 +234,12 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
 
         TreeMap<Long, Data> mapData = energyData.getSdatData();
 
+        System.out.println(mapData.get(1559419200000L).getRelativBezug());
         for (Map.Entry<Long, Data> entry : mapData.entrySet()) {
+            if(entry.getKey() == 1559419200000L){
+                System.out.println("GUI");
+                System.out.println(entry.getValue().getRelativBezug());
+            }
             s1.add(new FixedMillisecond(entry.getKey()), entry.getValue().getRelativBezug());
         }
 
@@ -263,7 +267,7 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
 
         TimeSeries s3 = new TimeSeries("Zählerdiagramm");
         for (Map.Entry<Long, Data> entry : energyData.getSdatData().entrySet()) {
-            s3.add(new FixedMillisecond(entry.getKey()), entry.getValue().getZaehlerstandBezug());
+            s3.add(new FixedMillisecond(entry.getKey()), (int) entry.getValue().getZaehlerstandBezug());
         }
 
 
@@ -306,6 +310,7 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
         EnergyData energyData = new EnergyData();
         GUIVerbrauchsdiagramm demo = new GUIVerbrauchsdiagramm(
                 "Stromzähler", energyData);
+
         //demo.pack();
         UIUtils.centerFrameOnScreen(demo);
         demo.setVisible(true);

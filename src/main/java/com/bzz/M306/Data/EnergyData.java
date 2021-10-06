@@ -12,8 +12,8 @@ public class EnergyData {
         sdatData = new TreeMap<>();
         sdatData = FileHandler.getFileHandler().getSdatData();
 
-        eslDataEinspeisung = FileHandler.getFileHandler().getEslDataEinspeisung();
-        eslDataBezug = FileHandler.getFileHandler().getEslDataBezug();
+        eslDataEinspeisung = FileHandler.getFileHandler().getZaehlerstandEinspeisung();
+        eslDataBezug = FileHandler.getFileHandler().getZaehlerstandBezug();
 
     }
 

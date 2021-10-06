@@ -27,8 +27,8 @@ import java.util.TreeMap;
  */
 public class FileHandler {
     private TreeMap<Long, Data> sdatData;
-    private double eslDataBezug;
-    private double eslDataEinspeisung;
+    private double zaehlerstandBezug;
+    private double zaehlerstandEinspeisung;
     private static FileHandler fileHandler;
 
 
@@ -37,11 +37,12 @@ public class FileHandler {
      */
     private FileHandler() {
         sdatData = new TreeMap<>();
-        eslDataEinspeisung = 0;
-        eslDataBezug = 0;
+        zaehlerstandEinspeisung = 0;
+        zaehlerstandBezug = 0;
 
         readESL();
         readSDAT();
+
     }
 
     /**
@@ -54,7 +55,6 @@ public class FileHandler {
         //Liest alle Files im Ordner "SDAT-Files"
         File[] files = new File("./src/main/java/XMLfiles/SDAT-Files").listFiles();
         DocumentBuilder builder = null;
-        TreeMap<Long, Double> tempMap = new TreeMap<>();
 
         try {
             builder = factory.newDocumentBuilder();
@@ -80,14 +80,21 @@ public class FileHandler {
                     if (observation.getNodeType() == Node.ELEMENT_NODE) {
                         Element observationElement = (Element) observation;
 
-                        Data data = new Data(getEslDataEinspeisung(), getEslDataBezug());
+                        Data data;
                         //Liest den Verbrauchswert
                         double value = Double.parseDouble(observationElement.getElementsByTagName("rsm:Volume")
                                 .item(0).getTextContent());
+                        milliSceonds = milliSceonds + 900000; //15 Min
+
+                        if(sdatData.get(milliSceonds) != null){
+                            data = sdatData.get(milliSceonds);
+                        }else {
+                            data = new Data(getZaehlerstandEinspeisung(), getZaehlerstandBezug());
+                        }
 
                         //Wenn Wert nicht 0 geht es weiter
-                        if (value != 0) {
-                            milliSceonds = milliSceonds + 900000; //15 Min
+
+
 
                             //Holt die ID des Files
                             NodeList idList = document.getElementsByTagName("rsm:InstanceDocument");
@@ -101,18 +108,29 @@ public class FileHandler {
                                 idS = idS.split("_")[2]; //Nimmt nur die ID
 
                                 //ID742 = Strom Bezug, ID735 = Strom Einspeisung
-                                if (idS.equals("ID742")) {
-                                    data.setRelativBezug(value);
-                                    setEslDataBezug(data.getZaehlerstandBezug());
-                                } else {
+                                if (idS.equals("ID735")) {
                                     data.setRelativeEinspeisung(value);
-                                    setEslDataEinspeisung(data.getZaehlerstandBezug());
+
+                                    setZaehlerstandEinspeisung(data.getZaehlerstandEinspeisung());
+
+
+                                } else {
+
+                                    data.setRelativBezug(value);
+
+                                    setZaehlerstandBezug(data.getZaehlerstandBezug());
                                 }
+
+
                             }
-                            sdatData.put(milliSceonds, data); //Speichert die Daten ab
-                        }
-                    }
+
+                        sdatData.put(milliSceonds, data); //Speichert die Daten ab
+
+
+
+                   }
                 }
+
             }
         } catch (ParserConfigurationException | IOException | SAXException e) {
             e.printStackTrace();
@@ -160,8 +178,8 @@ public class FileHandler {
                         }
                     }
                 }
-                eslDataBezug = value1;
-                eslDataEinspeisung = value2;
+                zaehlerstandBezug = value1;
+                zaehlerstandEinspeisung = value2;
             }
         } catch (ParserConfigurationException | IOException | SAXException e) {
             e.printStackTrace();
@@ -227,17 +245,17 @@ public class FileHandler {
      *
      * @return der Zählerstand
      */
-    public double getEslDataBezug() {
-        return eslDataBezug;
+    public double getZaehlerstandBezug() {
+        return zaehlerstandBezug;
     }
 
     /**
      * Setzt den Zählerstand des Bezugs.
      *
-     * @param eslDataBezug der Zählerstand
+     * @param zaehlerstandBezug der Zählerstand
      */
-    public void setEslDataBezug(double eslDataBezug) {
-        this.eslDataBezug = eslDataBezug;
+    public void setZaehlerstandBezug(double zaehlerstandBezug) {
+        this.zaehlerstandBezug = zaehlerstandBezug;
     }
 
     /**
@@ -245,17 +263,17 @@ public class FileHandler {
      *
      * @return der Zählerstand
      */
-    public double getEslDataEinspeisung() {
-        return eslDataEinspeisung;
+    public double getZaehlerstandEinspeisung() {
+        return zaehlerstandEinspeisung;
     }
 
     /**
      * Setzt den Zählerstand der Einspeisung
      *
-     * @param eslDataEinspeisung der Zählerstand
+     * @param zaehlerstandEinspeisung der Zählerstand
      */
-    public void setEslDataEinspeisung(double eslDataEinspeisung) {
-        this.eslDataEinspeisung = eslDataEinspeisung;
+    public void setZaehlerstandEinspeisung(double zaehlerstandEinspeisung) {
+        this.zaehlerstandEinspeisung = zaehlerstandEinspeisung;
     }
 
     /**
