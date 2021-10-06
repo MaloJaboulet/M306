@@ -265,9 +265,14 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
 
     private static XYDataset createDatasetZaehlerdiagramm(EnergyData energyData) {
 
-        TimeSeries s3 = new TimeSeries("Zählerdiagramm");
+        TimeSeries s3 = new TimeSeries("Bezug-Zählerdiagramm");
         for (Map.Entry<Long, Data> entry : energyData.getSdatData().entrySet()) {
             s3.add(new FixedMillisecond(entry.getKey()), (int) entry.getValue().getZaehlerstandBezug());
+        }
+
+        TimeSeries s4 = new TimeSeries("Einspeisung-Zählerdiagramm");
+        for (Map.Entry<Long, Data> entry : energyData.getSdatData().entrySet()) {
+            s4.add(new FixedMillisecond(entry.getKey()), (int) entry.getValue().getZaehlerstandEinspeisung());
         }
 
 
@@ -281,6 +286,7 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
         // ******************************************************************
 
         dataset.addSeries(s3);
+        dataset.addSeries(s4);
 
         return dataset;
 
