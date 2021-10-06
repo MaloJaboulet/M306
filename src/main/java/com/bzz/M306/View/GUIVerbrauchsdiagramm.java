@@ -31,8 +31,10 @@ package com.bzz.M306.View;/* =========================
  */
 
 
+import com.bzz.M306.Controller.FileHandler;
 import com.bzz.M306.Data.Data;
 import com.bzz.M306.Data.EnergyData;
+import com.bzz.M306.Data.csvData;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -53,6 +55,7 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -83,6 +86,7 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
     private JPanel pCsv = new JPanel(new GridLayout(3, 3));
 
     private JButton bExportCSV = new JButton("Export to CSV");
+    private JButton bExportJSON = new JButton("Export to JSON");
     private JButton bBackwards = new JButton("<");
     private JButton bForwards = new JButton(">");
     private ButtonGroup buttonGroup = new ButtonGroup();
@@ -122,8 +126,9 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
         pDate.add(lCurrentDate);
         pDate.add(pSkipDay);
 
-        pCsv.add(lEmpty);
         pCsv.add(bExportCSV);
+        pCsv.add(lEmpty);
+        pCsv.add(bExportJSON);
 
 
         pHeader.add(pRadiobuttons);
@@ -151,6 +156,31 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
                 }
             }
         };
+
+
+                bExportCSV.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        EnergyData energyData = new EnergyData();
+                        TreeMap<Long, csvData> map = FileHandler.getFileHandler().getCSVData();
+                        try {
+                            energyData.writeCSV(map);
+                        } catch (IOException ioException) {
+                            ioException.printStackTrace();
+                        }
+                        lEmpty.setText("Daten wurden in eine csv-File exportiert");
+                    }
+                });
+
+                bExportJSON.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        EnergyData energyData = new EnergyData();
+                        TreeMap<Long, csvData> map = FileHandler.getFileHandler().getCSVData();
+                        energyData.saveJSON(map);
+                        lEmpty.setText("Daten wurden zum JSON exportiert\n" + "https://api.npoint.io/0dc854da1619aca3be45");
+                    }
+                });
 
         ActionListener actionListenerCSV = new ActionListener() {
             @Override
