@@ -1,6 +1,7 @@
 package com.bzz.M306.Controller;
 
 import com.bzz.M306.Data.Data;
+import com.bzz.M306.Data.csvData;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -12,9 +13,11 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 import java.util.TreeMap;
 
 /**
@@ -45,6 +48,26 @@ public class FileHandler {
         readESL();
         readSDAT();
 
+    }
+
+    public TreeMap<Long, csvData> getCSVData() {
+        TreeMap<Long, csvData> csvDataMap = new TreeMap<>();
+        csvData csvData;
+        for (Map.Entry<Long, Data> data: sdatData.entrySet())
+        {
+            csvData = new csvData();
+            Date date = new Date(data.getKey());
+            DateFormat df = new SimpleDateFormat("dd:MM:yy:HH:mm:ss");
+            csvData.setDatum(String.valueOf(df.format(date)));
+            csvData.setZaehlerstandBezug(data.getValue().getZaehlerstandBezug());
+            csvData.setZaehlerstandEinspeisung(data.getValue().getZaehlerstandEinspeisung());
+            csvData.setRelativBezug(data.getValue().getRelativBezug());
+            csvData.setRelativeEinspeisung(data.getValue().getRelativeEinspeisung());
+            csvDataMap.put(data.getKey(), csvData);
+
+        }
+
+        return csvDataMap;
     }
 
     /**
@@ -278,6 +301,14 @@ public class FileHandler {
      */
     public void setZaehlerstandEinspeisung(double zaehlerstandEinspeisung) {
         this.zaehlerstandEinspeisung = zaehlerstandEinspeisung;
+    }
+
+    public double getAnfangbestandBezug() {
+        return anfangbestandBezug;
+    }
+
+    public double getAnfangbestandEinspeiung() {
+        return anfangbestandEinspeiung;
     }
 
     /**

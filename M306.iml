@@ -32,5 +32,32 @@
     <orderEntry type="library" name="Maven: org.jfree:org.jfree.chart3d:2.0" level="project" />
     <orderEntry type="library" name="Maven: org.jfree:org.jfree.svg:4.2" level="project" />
     <orderEntry type="library" name="Maven: org.jfree:org.jfree.pdf:2.0" level="project" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$USER_HOME$/Downloads/jar_files/jackson-databind-2.13.0-rc1.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$USER_HOME$/Downloads/jar_files/jackson-core-2.13.0-rc1.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$USER_HOME$/Downloads/jar_files/jackson-annotations-2.13.0-rc1.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>
