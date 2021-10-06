@@ -2,6 +2,7 @@ package com.bzz.M306.Controller;
 
 import com.bzz.M306.Data.Data;
 import com.bzz.M306.Data.csvData;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -11,8 +12,10 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -53,8 +56,7 @@ public class FileHandler {
     public TreeMap<Long, csvData> getCSVData() {
         TreeMap<Long, csvData> csvDataMap = new TreeMap<>();
         csvData csvData;
-        for (Map.Entry<Long, Data> data: sdatData.entrySet())
-        {
+        for (Map.Entry<Long, Data> data : sdatData.entrySet()) {
             csvData = new csvData();
             Date date = new Date(data.getKey());
             DateFormat df = new SimpleDateFormat("dd:MM:yy:HH:mm:ss");
@@ -111,52 +113,41 @@ public class FileHandler {
                                 .item(0).getTextContent());
                         milliSceonds = milliSceonds + 900000; //15 Min
 
-                        if(sdatData.get(milliSceonds) != null){
+                        if (sdatData.get(milliSceonds) != null) {
                             data = sdatData.get(milliSceonds);
                             data.setZaehlerstandEinspeisung(getZaehlerstandEinspeisung());
                             data.setZaehlerstandBezug(getZaehlerstandBezug());
 
-                        }else {
+                        } else {
                             data = new Data(getZaehlerstandEinspeisung(), getZaehlerstandBezug());
                         }
+                        //Holt die ID des Files
+                        NodeList idList = document.getElementsByTagName("rsm:InstanceDocument");
+                        Node id = idList.item(0);
 
-                        //Wenn Wert nicht 0 geht es weiter
+                        if (id.getNodeType() == Node.ELEMENT_NODE) {
+                            Element idElement = (Element) id;
+                            String idS = idElement.getElementsByTagName("rsm:DocumentID")
+                                    .item(0).getTextContent();
 
+                            idS = idS.split("_")[2]; //Nimmt nur die ID
 
+                            //ID742 = Strom Bezug, ID735 = Strom Einspeisung
+                            if (idS.equals("ID735")) {
+                                data.setRelativeEinspeisung(value);
 
-                            //Holt die ID des Files
-                            NodeList idList = document.getElementsByTagName("rsm:InstanceDocument");
-                            Node id = idList.item(0);
-
-                            if (id.getNodeType() == Node.ELEMENT_NODE) {
-                                Element idElement = (Element) id;
-                                String idS = idElement.getElementsByTagName("rsm:DocumentID")
-                                        .item(0).getTextContent();
-
-                                idS = idS.split("_")[2]; //Nimmt nur die ID
-
-                                //ID742 = Strom Bezug, ID735 = Strom Einspeisung
-                                if (idS.equals("ID735")) {
-                                    data.setRelativeEinspeisung(value);
-
-                                    setZaehlerstandEinspeisung(data.getZaehlerstandEinspeisung());
+                                setZaehlerstandEinspeisung(data.getZaehlerstandEinspeisung());
 
 
-                                } else {
+                            } else {
+                                data.setRelativBezug(value);
 
-                                    data.setRelativBezug(value);
-
-                                    setZaehlerstandBezug(data.getZaehlerstandBezug());
-                                }
-
-
+                                setZaehlerstandBezug(data.getZaehlerstandBezug());
                             }
+                        }
 
                         sdatData.put(milliSceonds, data); //Speichert die Daten ab
-
-
-
-                   }
+                    }
                 }
 
             }
@@ -214,6 +205,70 @@ public class FileHandler {
         } catch (ParserConfigurationException | IOException | SAXException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void writeCSV(TreeMap<Long, csvData> map) throws IOException {
+        try {
+
+            String anfangsBestandBezug = String.valueOf(FileHandler.getFileHandler().getAnfangbestandBezug());
+            String anfangsBestandEinspeisung = String.valueOf(FileHandler.getFileHandler().getAnfangbestandEinspeiung());
+
+            FileWriter datalist = new FileWriter("DataList.csv");
+
+            datalist.write("Anfangsbestand Bezug: " + anfangsBestandBezug + "\n\n");
+            datalist.write("Anfangsbestand Einspeisung: " + anfangsBestandEinspeisung + "\n\n");
+            for (Map.Entry<Long, csvData> entry : map.entrySet()
+            ) {
+                String datum = entry.getValue().getDatum();
+                datalist.write("Datum: " + datum + "\n");
+                Double relativeEinspeisung = entry.getValue().getRelativeEinspeisung();
+                datalist.write("Relative Einspeisung: " + String.valueOf(relativeEinspeisung) + "\n");
+                Double relativBezug = entry.getValue().getRelativBezug();
+                datalist.write("Relativer Bezug: " + String.valueOf(relativBezug) + "\n");
+                Double zaehlerstandBezug = entry.getValue().getZaehlerstandBezug();
+                datalist.write("Zählerstandbezug: " + String.valueOf(zaehlerstandBezug) + "\n");
+                Double zaehlerstandEinspeisung = entry.getValue().getZaehlerstandEinspeisung();
+                datalist.write("Zählerstandeinspeisung: " + String.valueOf(zaehlerstandEinspeisung) + "\n");
+            }
+            datalist.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
+    public static void saveJSON(TreeMap<Long, csvData> map) {
+        try {
+
+            URL url = new URL("https://api.npoint.io/0dc854da1619aca3be45");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json; utf-8");
+            connection.setRequestProperty("Accept", "application/json");
+            connection.setDoOutput(true);
+
+            String jsonInputString = new ObjectMapper().writeValueAsString(map.entrySet().toArray());
+
+            try (OutputStream os = connection.getOutputStream()) {
+                byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
+                os.write(input);
+            }
+
+            try (BufferedReader br = new BufferedReader(
+                    new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+                StringBuilder response = new StringBuilder();
+                String responseLine = null;
+                while ((responseLine = br.readLine()) != null) {
+                    response.append(responseLine.trim());
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.out.println("Daten wurden exportiert");
     }
 
     /**

@@ -164,7 +164,7 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
                         EnergyData energyData = new EnergyData();
                         TreeMap<Long, csvData> map = FileHandler.getFileHandler().getCSVData();
                         try {
-                            energyData.writeCSV(map);
+                            FileHandler.writeCSV(map);
                         } catch (IOException ioException) {
                             ioException.printStackTrace();
                         }
@@ -177,8 +177,8 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
                     public void actionPerformed(ActionEvent e) {
                         EnergyData energyData = new EnergyData();
                         TreeMap<Long, csvData> map = FileHandler.getFileHandler().getCSVData();
-                        energyData.saveJSON(map);
-                        lEmpty.setText("Daten wurden zum JSON exportiert\n" + "https://api.npoint.io/0dc854da1619aca3be45");
+                        FileHandler.saveJSON(map);
+                        lEmpty.setText("Daten wurden zum JSON exportiert \n" + "https://api.npoint.io/0dc854da1619aca3be45");
                     }
                 });
 
