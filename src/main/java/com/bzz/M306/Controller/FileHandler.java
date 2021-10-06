@@ -92,6 +92,7 @@ public class FileHandler {
                             data = sdatData.get(milliSceonds);
                             data.setZaehlerstandEinspeisung(getZaehlerstandEinspeisung());
                             data.setZaehlerstandBezug(getZaehlerstandBezug());
+
                         }else {
                             data = new Data(getZaehlerstandEinspeisung(), getZaehlerstandBezug());
                         }

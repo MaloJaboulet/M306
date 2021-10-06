@@ -288,6 +288,7 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
         dataset.addSeries(s3);
         dataset.addSeries(s4);
 
+
         return dataset;
 
     }
