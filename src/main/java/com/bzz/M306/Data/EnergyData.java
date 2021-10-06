@@ -1,14 +1,6 @@
 package com.bzz.M306.Data;
 
 import com.bzz.M306.Controller.FileHandler;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.source.tree.Tree;
-
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
 import java.util.TreeMap;
 
 public class EnergyData {
@@ -25,7 +17,6 @@ public class EnergyData {
         eslDataBezug = FileHandler.getFileHandler().getZaehlerstandBezug();
 
     }
-
     public double getEslDataBezug() {
         return eslDataBezug;
     }
@@ -50,11 +41,4 @@ public class EnergyData {
         this.sdatData = sdatData;
     }
 
-    public static void main(String[] args) throws IOException {
-        EnergyData energyData = new EnergyData();
-        TreeMap<Long, csvData> csvDataMap = FileHandler.getFileHandler().getCSVData();
-        //energyData.writeCSV(csvDataMap);
-        //energyData.saveJSON(csvDataMap);
-
-    }
 }

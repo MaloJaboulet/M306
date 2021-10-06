@@ -2,7 +2,6 @@ package com.bzz.M306.Data;
 
 public class csvData {
 
-
     private double relativeEinspeisung;
     private double relativBezug;
     private double zaehlerstandBezug;
@@ -17,17 +16,17 @@ public class csvData {
         this.datum = datum;
     }
 
-
-    public csvData() {}
+    public csvData() {
+    }
 
     public String getDatum() {
         return datum;
     }
 
     public void setDatum(String datum) {
-
         this.datum = datum;
     }
+
     public double getRelativeEinspeisung() {
         return relativeEinspeisung;
     }
@@ -59,10 +58,4 @@ public class csvData {
     public void setZaehlerstandEinspeisung(double zaehlerstandEinspeisung) {
         this.zaehlerstandEinspeisung = zaehlerstandEinspeisung;
     }
-
-
-
-
-
-
 }

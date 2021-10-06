@@ -157,57 +157,53 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
             }
         };
 
-
-                bExportCSV.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        EnergyData energyData = new EnergyData();
-                        TreeMap<Long, csvData> map = FileHandler.getFileHandler().getCSVData();
-                        try {
-                            FileHandler.writeCSV(map);
-                        } catch (IOException ioException) {
-                            ioException.printStackTrace();
-                        }
-                        lEmpty.setText("Daten wurden in eine csv-File exportiert");
-                    }
-                });
-
-                bExportJSON.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        EnergyData energyData = new EnergyData();
-                        TreeMap<Long, csvData> map = FileHandler.getFileHandler().getCSVData();
-                        FileHandler.saveJSON(map);
-                        lEmpty.setText("Daten wurden zum JSON exportiert \n" + "https://api.npoint.io/0dc854da1619aca3be45");
-                    }
-                });
-
-        ActionListener actionListenerCSV = new ActionListener() {
+        bExportCSV.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                //export data to csv-file
+                EnergyData energyData = new EnergyData();
+                TreeMap<Long, csvData> map = FileHandler.getFileHandler().getCSVData();
+                try {
+                    FileHandler.writeCSV(map);
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
+                lEmpty.setText("Daten wurden in eine csv-File exportiert");
             }
-        };
+        });
+
+        bExportJSON.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                EnergyData energyData = new EnergyData();
+                TreeMap<Long, csvData> map = FileHandler.getFileHandler().getCSVData();
+                FileHandler.saveJSON(map);
+                lEmpty.setText("Daten wurden zum JSON exportiert \n" + "https://api.npoint.io/0dc854da1619aca3be45");
+            }
+        });
 
         chart.getXYPlot().addChangeListener(new PlotChangeListener() {
             @Override
             public void plotChanged(PlotChangeEvent plotChangeEvent) {
-               long upperBound = (long)plotChangeEvent.getPlot().getChart().getXYPlot().getDomainAxis().getUpperBound();
-               long lowerBound = (long)plotChangeEvent.getPlot().getChart().getXYPlot().getDomainAxis().getLowerBound();
+                XYPlot plot = plotChangeEvent.getPlot().getChart().getXYPlot();
+                long upperBound = (long) plot.getDomainAxis().getUpperBound();
+                long lowerBound = (long) plot.getDomainAxis().getLowerBound();
                 //System.out.println("upper: " +upperBound);
                 //System.out.println("lower: " +lowerBound);
-               long center = (upperBound + lowerBound)/2;
-               centerDay = center;
-               // System.out.println(centerDay);
-               // chart.getPlot().getChart().getXYPlot().getDomainAxis().
+                long center = (upperBound + lowerBound) / 2;
+                centerDay = center;
+                System.out.println(centerDay);
+               // plotChangeEvent.getPlot().getChart().getXYPlot().getDomainAxis().setUpperBound(plotChangeEvent.getPlot().getChart().getXYPlot().getDomainAxis().getUpperBound() + 86400000);
+                //plotChangeEvent.getPlot().getChart().getXYPlot().getDomainAxis().setLowerBound(plotChangeEvent.getPlot().getChart().getXYPlot().getDomainAxis().getLowerBound() + 86400000);
+                // chart.getPlot().getChart().getXYPlot().getDomainAxis().
+                //plotChangeEvent.getPlot().getChart().getXYPlot().setDataset(plotChangeEvent.getPlot().getChart().getXYPlot().getDataset());
             }
         });
 
-
         verbrauchDiagramm.addActionListener(actionListenerDiagramm);
         zaehlerDiagramm.addActionListener(actionListenerDiagramm);
-        bExportCSV.addActionListener(actionListenerCSV);
     }
+
+
 
     /**
      * Creates a chart.
@@ -264,12 +260,7 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
 
         TreeMap<Long, Data> mapData = energyData.getSdatData();
 
-        System.out.println(mapData.get(1559419200000L).getRelativBezug());
         for (Map.Entry<Long, Data> entry : mapData.entrySet()) {
-            if(entry.getKey() == 1559419200000L){
-                System.out.println("GUI");
-                System.out.println(entry.getValue().getRelativBezug());
-            }
             s1.add(new FixedMillisecond(entry.getKey()), entry.getValue().getRelativBezug());
         }
 
@@ -304,7 +295,6 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
         for (Map.Entry<Long, Data> entry : energyData.getSdatData().entrySet()) {
             s4.add(new FixedMillisecond(entry.getKey()), (int) entry.getValue().getZaehlerstandEinspeisung());
         }
-
 
 
         // ******************************************************************
