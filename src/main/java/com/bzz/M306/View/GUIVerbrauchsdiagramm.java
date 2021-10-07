@@ -457,6 +457,14 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
         return energyData;
     }
 
+    public JTextField gettDate() {
+        return tDate;
+    }
+
+    public JLabel getlEmpty2() {
+        return lEmpty2;
+    }
+
     /**
      * Starting point for the demonstration application.
      *

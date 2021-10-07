@@ -1,5 +1,6 @@
 import com.bzz.M306.Controller.FileHandler;
 import com.bzz.M306.Data.Data;
+import com.bzz.M306.Data.EnergyData;
 import com.bzz.M306.View.GUIVerbrauchsdiagramm;
 import org.junit.*;
 
@@ -23,7 +24,7 @@ public class Testing {
     @Before
     public void setUp() {
         fileHandler = FileHandler.getFileHandler();
-        gui = new GUIVerbrauchsdiagramm("Test", null);
+        gui = new GUIVerbrauchsdiagramm("Test", new EnergyData());
     }
 
     @Test
@@ -47,13 +48,27 @@ public class Testing {
         String resultat = "";
         JButton button = new JButton();
 
-        gui.checkDate(new KeyEvent(button,1,20,1,10));
+        gui.gettDate().setText(datum);
+        gui.checkDate(new KeyEvent(button,1,20,1,KeyEvent.VK_ENTER));
 
+
+        resultat = gui.getlEmpty2().getText();
+
+        assertEquals("",resultat);
     }
 
+    @Test
+    public void falschesDatum(){
+        String datum = "09.09.200";
+        String resultat = "";
+        JButton button = new JButton();
+        gui.gettDate().setText(datum);
 
-    public static void main(String[] args) {
+        gui.checkDate(new KeyEvent(button,1,20,1,KeyEvent.VK_ENTER));
 
+        resultat = gui.getlEmpty2().getText();
+
+        assertEquals("Es wurde eine flasches Datum eingegeben.",resultat);
     }
 
     // Ende Methoden
