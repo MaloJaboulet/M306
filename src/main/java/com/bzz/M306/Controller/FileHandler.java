@@ -253,17 +253,17 @@ public class FileHandler {
 
             try (OutputStream os = connection.getOutputStream()) {
                 byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
-                os.write(input);
+               // os.write(input);  Auskommentiert, weil es zu lange geht.
             }
 
-            try (BufferedReader br = new BufferedReader(
+            /*try (BufferedReader br = new BufferedReader(
                     new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
                 StringBuilder response = new StringBuilder();
                 String responseLine = null;
                 while ((responseLine = br.readLine()) != null) {
                     response.append(responseLine.trim());
                 }
-            }
+            }*/
 
         } catch (Exception e) {
             e.printStackTrace();

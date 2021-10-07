@@ -1,35 +1,4 @@
-package com.bzz.M306.View;/* =========================
- * GUIVerbrauchsdiagramm.java
- * =========================
- *
- * (C) Copyright 2003-2021, by Object Refinery Limited.
- *
- * Project Info:  http://www.jfree.org/jfreechart/index.html
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *   - Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   - Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- *   - Neither the name of the Object Refinery Limited nor the
- *     names of its contributors may be used to endorse or promote products
- *     derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL OBJECT REFINERY LIMITED BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- */
-
+package com.bzz.M306.View;
 
 import com.bzz.M306.Controller.FileHandler;
 import com.bzz.M306.Data.Data;
@@ -49,12 +18,10 @@ import org.jfree.data.xy.XYDataset;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.awt.event.*;
 import java.io.IOException;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -68,14 +35,13 @@ import java.util.TreeMap;
  */
 public class GUIVerbrauchsdiagramm extends ApplicationFrame {
 
-    private static final long serialVersionUID = 1L;
 
     private static TimeSeriesCollection dataset = new TimeSeriesCollection();
     private static JFreeChart chart;
 
 
     private JLabel lDay = new JLabel("Tag", SwingConstants.CENTER);
-    private JLabel lCurrentDate = new JLabel("automatisch 15.03.21", SwingConstants.CENTER);
+    private JLabel lCurrentDate = new JLabel("01.06.20", SwingConstants.CENTER);
     private JLabel lEmpty = new JLabel("");
     private JLabel lEmpty2 = new JLabel("");
 
@@ -96,7 +62,7 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
     private ButtonGroup buttonGroup = new ButtonGroup();
     private JRadioButton verbrauchDiagramm = new JRadioButton("Verbrauchsdiagramm");
     private JRadioButton zaehlerDiagramm = new JRadioButton("Zählerstandsdiagramm");
-    private JTextField tDate = new JTextField("Datum eingeben:");
+    private JTextField tDate = new JTextField("Datum:");
 
     private EnergyData energyData;
 
@@ -112,17 +78,13 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         ChartPanel chartPanel = (ChartPanel) createPanel(energyData);
 
-        // chartPanel.setPreferredSize(new java.awt.Dimension(500, 270));
-
-        //bExportCSV.setPreferredSize(new Dimension(1,1));
-
         buttonGroup.add(verbrauchDiagramm);
         buttonGroup.add(zaehlerDiagramm);
         pRadiobuttons.add(verbrauchDiagramm);
         pRadiobuttons.add(zaehlerDiagramm);
         pRadiobuttons.setBorder(new EmptyBorder(0, 20, 0, 0));
         verbrauchDiagramm.setSelected(true);
-
+        tDate.setForeground(Color.gray);
 
         pSkipDay.setLayout(new GridLayout(1, 7, 5, 0));
         pSkipDay.add(bBackwardsM);
@@ -282,9 +244,7 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
         tDate.addKeyListener(new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {
-                if (e.getKeyCode() == 13){
-                    //tDate.getText()
-                }
+               checkDate(e);
             }
 
             @Override
@@ -297,6 +257,26 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
 
             }
         });
+
+        tDate.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (tDate.getText().equals("Datum:")) {
+                    tDate.setText("");
+                    tDate.setForeground(Color.BLACK);
+                }
+            }
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (tDate.getText().isEmpty()) {
+                    tDate.setForeground(Color.GRAY);
+                    tDate.setText("Datum:");
+                }
+            }
+        });
+
+
+
 
         verbrauchDiagramm.addActionListener(actionListenerDiagramm);
         zaehlerDiagramm.addActionListener(actionListenerDiagramm);
@@ -421,30 +401,7 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
         chart = createChart(createDatasetVerbrauchsdiagramm(energyData));
 
         ChartPanel panel = new ChartPanel(chart, false);
-        panel.addChartMouseListener(new ChartMouseListener() {
-            @Override
-            public void chartMouseClicked(ChartMouseEvent chartMouseEvent) {
-                XYPlot plot = chartMouseEvent.getChart().getXYPlot();
-                long upperBound = (long) plot.getDomainAxis().getUpperBound();
-                long lowerBound = (long) plot.getDomainAxis().getLowerBound();
-                //System.out.println("upper: " +upperBound);
-                //System.out.println("lower: " +lowerBound);
-                long center = (upperBound + lowerBound) / 2;
 
-                System.out.println(center);
-                //DateAxis dateAxis =  (DateAxis) plot.getDomainAxis();
-                // dateAxis.setRange((centerDay - 86400000),(centerDay+86400000));
-                plot.getDomainAxis().setUpperBound(upperBound + 86400000);
-                plot.getDomainAxis().setLowerBound(lowerBound + 86400000);
-
-
-            }
-
-            @Override
-            public void chartMouseMoved(ChartMouseEvent chartMouseEvent) {
-
-            }
-        });
         panel.setFillZoomRectangle(true);
         panel.setMouseWheelEnabled(true);
         return panel;
@@ -470,6 +427,30 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
 
         plot.getDomainAxis().setUpperBound(centerday + 86400000);
         plot.getDomainAxis().setLowerBound(centerday - 86400000);
+    }
+
+    public void checkDate(KeyEvent e){
+        tDate.setFocusable(true);
+        if (e.getKeyChar() == 0x0A){
+            String text = tDate.getText();
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd.MM.yyyy");
+            try {
+                Date date = simpleDateFormat.parse(text);
+                System.out.println(date.getTime());
+                if (date.getTime() > 1551388500000L && date.getTime() < 1630954800000L){
+                    chart.getXYPlot().getDomainAxis().setUpperBound(date.getTime() + 86400000);
+                    chart.getXYPlot().getDomainAxis().setLowerBound(date.getTime() - 86400000);
+                }else {
+                    lEmpty2.setText("Es wurde eine flasches Datum eingegeben.");
+                    lEmpty2.setForeground(Color.red);
+
+                }
+
+            } catch (ParseException parseException) {
+                lEmpty2.setText("Es wurde eine flasches Datum eingegeben.");
+                lEmpty2.setForeground(Color.red);
+            }
+        }
     }
 
     public EnergyData getEnergyData() {
