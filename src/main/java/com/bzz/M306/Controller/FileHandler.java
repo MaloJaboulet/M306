@@ -26,10 +26,13 @@ import java.util.TreeMap;
 /**
  * @author Malo Jaboulet
  * @version 1.0
+ * @since 04.10.2021
  * <p>
  * Diese Klasse hat alle Methoden, die mit den SDAT- und ESL-Files zu tun haben.
  * Diese Klasse hat Methoden, die die Files lesen und die Daten dann in eine TreeMap speichern.
- * @since 04.10.2021
+ * <p>
+ * Die XML-Files müssen in diesem Verzeichnis sein: ""src/main/java/XMLfiles/SDAT-Files".
+ * Die JAR-Files müssen in die Projektstruktur unter Modules/Dependecies eingefügt werden.
  */
 public class FileHandler {
     private TreeMap<Long, Data> sdatData;
@@ -67,8 +70,10 @@ public class FileHandler {
 
         try {
             builder = factory.newDocumentBuilder();
+            int index = 0;
 
             for (File filname : files) {
+                index ++;
                 Document document = builder.parse(filname); //Parsed das XML-File
                 document.getDocumentElement().normalize();
                 long milliSceonds = 0;
@@ -131,6 +136,7 @@ public class FileHandler {
                 }
 
             }
+            System.out.println("Anzahl SDAT-Files: "+index);
         } catch (ParserConfigurationException | IOException | SAXException e) {
             e.printStackTrace();
         }
@@ -289,6 +295,7 @@ public class FileHandler {
 
     /**
      * Holt die CSV-Daten
+     *
      * @return die Daten
      */
     public TreeMap<Long, csvData> getCSVData() {
