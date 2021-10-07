@@ -47,7 +47,7 @@ public class Testing {
         String resultat = "";
         JButton button = new JButton();
 
-        //gui.checkDate(new KeyEvent(button,1,20,1,10,"0x0A"));
+        gui.checkDate(new KeyEvent(button,1,20,1,10));
 
     }
 
