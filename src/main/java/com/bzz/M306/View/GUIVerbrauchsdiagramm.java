@@ -35,12 +35,8 @@ import com.bzz.M306.Controller.FileHandler;
 import com.bzz.M306.Data.Data;
 import com.bzz.M306.Data.EnergyData;
 import com.bzz.M306.Data.csvData;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartPanel;
-import org.jfree.chart.JFreeChart;
+import org.jfree.chart.*;
 import org.jfree.chart.axis.DateAxis;
-import org.jfree.chart.event.PlotChangeEvent;
-import org.jfree.chart.event.PlotChangeListener;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
@@ -55,7 +51,10 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.IOException;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -78,23 +77,28 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
     private JLabel lDay = new JLabel("Tag", SwingConstants.CENTER);
     private JLabel lCurrentDate = new JLabel("automatisch 15.03.21", SwingConstants.CENTER);
     private JLabel lEmpty = new JLabel("");
+    private JLabel lEmpty2 = new JLabel("");
 
-    private JPanel pHeader = new JPanel(new GridLayout(1, 3));
+    private JPanel pHeader = new JPanel(new GridLayout(1, 3, 10, 0));
     private JPanel pRadiobuttons = new JPanel(new GridLayout(2, 1));
     private JPanel pSkipDay = new JPanel();
-    private JPanel pDate = new JPanel(new GridLayout(2, 1));
+    private JPanel pDate = new JPanel(new GridLayout(3, 1));
     private JPanel pCsv = new JPanel(new GridLayout(3, 3));
 
     private JButton bExportCSV = new JButton("Export to CSV");
     private JButton bExportJSON = new JButton("Export to JSON");
     private JButton bBackwards = new JButton("<");
     private JButton bForwards = new JButton(">");
+    private JButton bBackwardsW = new JButton("<<");
+    private JButton bForwardsW = new JButton(">>");
+    private JButton bBackwardsM = new JButton("<<<");
+    private JButton bForwardsM = new JButton(">>>");
     private ButtonGroup buttonGroup = new ButtonGroup();
     private JRadioButton verbrauchDiagramm = new JRadioButton("Verbrauchsdiagramm");
     private JRadioButton zaehlerDiagramm = new JRadioButton("Zählerstandsdiagramm");
+    private JTextField tDate = new JTextField("Datum eingeben:");
 
     private EnergyData energyData;
-    private long centerDay;
 
     /**
      * A demonstration application showing how to create a simple time series
@@ -104,10 +108,10 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
      */
     public GUIVerbrauchsdiagramm(String title, EnergyData energyData) {
         super(title);
+        this.energyData = energyData;
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         ChartPanel chartPanel = (ChartPanel) createPanel(energyData);
-        this.energyData = energyData;
-        this.centerDay = 0;
+
         // chartPanel.setPreferredSize(new java.awt.Dimension(500, 270));
 
         //bExportCSV.setPreferredSize(new Dimension(1,1));
@@ -119,12 +123,20 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
         pRadiobuttons.setBorder(new EmptyBorder(0, 20, 0, 0));
         verbrauchDiagramm.setSelected(true);
 
-        pSkipDay.add(bBackwards, BorderLayout.WEST);
-        pSkipDay.add(lDay, BorderLayout.CENTER);
-        pSkipDay.add(bForwards, BorderLayout.EAST);
+
+        pSkipDay.setLayout(new GridLayout(1, 7, 5, 0));
+        pSkipDay.add(bBackwardsM);
+        pSkipDay.add(bBackwardsW);
+        pSkipDay.add(bBackwards);
+        pSkipDay.add(tDate);
+        pSkipDay.add(bForwards);
+        pSkipDay.add(bForwardsW);
+        pSkipDay.add(bForwardsM);
 
         pDate.add(lCurrentDate);
+        pDate.add(lEmpty2);
         pDate.add(pSkipDay);
+
 
         pCsv.add(bExportCSV);
         pCsv.add(lEmpty);
@@ -181,28 +193,114 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
             }
         });
 
-        chart.getXYPlot().addChangeListener(new PlotChangeListener() {
+        bForwards.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                changeDate(86400000, true);
+            }
+        });
+
+        bBackwards.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                changeDate(86400000, false);
+            }
+        });
+        bBackwardsW.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                changeDate(604800000, false);
+            }
+        });
+        bForwardsW.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                changeDate(604800000, true);
+            }
+        });
+        bBackwardsM.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                changeDate(2629800000L, false);
+            }
+        });
+        bForwardsM.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                changeDate(2629800000L, true);
+            }
+        });
+
+        /*chart.getXYPlot().addChangeListener(new PlotChangeListener() {
             @Override
             public void plotChanged(PlotChangeEvent plotChangeEvent) {
                 XYPlot plot = plotChangeEvent.getPlot().getChart().getXYPlot();
+                PlotChangeListener plotChangeListener = this;
+
+                plot.removeChangeListener(plotChangeListener);
                 long upperBound = (long) plot.getDomainAxis().getUpperBound();
                 long lowerBound = (long) plot.getDomainAxis().getLowerBound();
-                //System.out.println("upper: " +upperBound);
-                //System.out.println("lower: " +lowerBound);
-                long center = (upperBound + lowerBound) / 2;
-                centerDay = center;
-                System.out.println(centerDay);
-               // plotChangeEvent.getPlot().getChart().getXYPlot().getDomainAxis().setUpperBound(plotChangeEvent.getPlot().getChart().getXYPlot().getDomainAxis().getUpperBound() + 86400000);
-                //plotChangeEvent.getPlot().getChart().getXYPlot().getDomainAxis().setLowerBound(plotChangeEvent.getPlot().getChart().getXYPlot().getDomainAxis().getLowerBound() + 86400000);
-                // chart.getPlot().getChart().getXYPlot().getDomainAxis().
-                //plotChangeEvent.getPlot().getChart().getXYPlot().setDataset(plotChangeEvent.getPlot().getChart().getXYPlot().getDataset());
+
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTimeInMillis(upperBound / 900000 * 900000);
+                upperBound = calendar.getTimeInMillis();
+
+                calendar.setTimeInMillis(lowerBound / 900000 * 900000);
+                lowerBound = calendar.getTimeInMillis();
+                System.out.println(new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(new Date(lowerBound)));
+
+                System.out.println(getEnergyData().getSdatData().containsKey(lowerBound));
+
+                double highestValue = 0;
+                if (getEnergyData().getSdatData().containsKey(lowerBound)) {
+                    for (long i = lowerBound; i < upperBound; i = i + 86400000) {
+                        if (getEnergyData().getSdatData().get(i).getRelativBezug() > highestValue) {
+                            highestValue = getEnergyData().getSdatData().get(i).getRelativBezug();
+
+                        }
+                        if (getEnergyData().getSdatData().get(i).getRelativeEinspeisung() > highestValue) {
+                            highestValue = getEnergyData().getSdatData().get(i).getZaehlerstandEinspeisung();
+                        }
+                    }
+
+                    System.out.println(highestValue);
+                    System.out.println(highestValue + 1);
+
+                    plot.getRangeAxis().setLowerBound(0);
+                    plot.getRangeAxis().setUpperBound(highestValue + 1);
+                }else {
+                    plot.getRangeAxis().setLowerBound(0);
+                    plot.getRangeAxis().setUpperBound(plot.getRangeAxis().getUpperBound());
+                }
+                plot.addChangeListener(plotChangeListener);
+
+            }
+
+        });
+         */
+
+        tDate.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                if (e.getKeyCode() == 13){
+                    //tDate.getText()
+                }
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+
             }
         });
 
         verbrauchDiagramm.addActionListener(actionListenerDiagramm);
         zaehlerDiagramm.addActionListener(actionListenerDiagramm);
     }
-
 
 
     /**
@@ -323,9 +421,59 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
         chart = createChart(createDatasetVerbrauchsdiagramm(energyData));
 
         ChartPanel panel = new ChartPanel(chart, false);
+        panel.addChartMouseListener(new ChartMouseListener() {
+            @Override
+            public void chartMouseClicked(ChartMouseEvent chartMouseEvent) {
+                XYPlot plot = chartMouseEvent.getChart().getXYPlot();
+                long upperBound = (long) plot.getDomainAxis().getUpperBound();
+                long lowerBound = (long) plot.getDomainAxis().getLowerBound();
+                //System.out.println("upper: " +upperBound);
+                //System.out.println("lower: " +lowerBound);
+                long center = (upperBound + lowerBound) / 2;
+
+                System.out.println(center);
+                //DateAxis dateAxis =  (DateAxis) plot.getDomainAxis();
+                // dateAxis.setRange((centerDay - 86400000),(centerDay+86400000));
+                plot.getDomainAxis().setUpperBound(upperBound + 86400000);
+                plot.getDomainAxis().setLowerBound(lowerBound + 86400000);
+
+
+            }
+
+            @Override
+            public void chartMouseMoved(ChartMouseEvent chartMouseEvent) {
+
+            }
+        });
         panel.setFillZoomRectangle(true);
         panel.setMouseWheelEnabled(true);
         return panel;
+    }
+
+    public void changeDate(long milliSeconds, boolean hoch) {
+        XYPlot plot = chart.getXYPlot();
+
+        long upperBound = (long) plot.getDomainAxis().getUpperBound();
+        long lowerBound = (long) plot.getDomainAxis().getLowerBound();
+        long center = (upperBound + lowerBound) / 2;
+
+
+        long centerday;
+        if (hoch) {
+            centerday = (center + milliSeconds);
+        } else {
+            centerday = (center - milliSeconds);
+        }
+
+        DateFormat df = new SimpleDateFormat("dd-MM-yyyy");
+        lCurrentDate.setText(df.format(new Date(centerday)));
+
+        plot.getDomainAxis().setUpperBound(centerday + 86400000);
+        plot.getDomainAxis().setLowerBound(centerday - 86400000);
+    }
+
+    public EnergyData getEnergyData() {
+        return energyData;
     }
 
     /**
