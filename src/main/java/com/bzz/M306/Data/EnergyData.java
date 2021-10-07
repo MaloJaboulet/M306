@@ -1,15 +1,26 @@
 package com.bzz.M306.Data;
 
 import com.bzz.M306.Controller.FileHandler;
+
 import java.util.TreeMap;
 
+/**
+ * @author Malo Jaboulet
+ * @version 1.0
+ * @since 05.10.2021
+ * <p>
+ * Die Model-Klasse der Applikation.
+ * Die Klasse beinhaltet alle Daten der Files.
+ */
 public class EnergyData {
     private TreeMap<Long, Data> sdatData;
     private double eslDataBezug;
     private double eslDataEinspeisung;
-    private TreeMap<Long, csvData> csvDataMap;
 
-    public EnergyData(){
+    /**
+     * Der Konstruktor
+     */
+    public EnergyData() {
         sdatData = new TreeMap<>();
         sdatData = FileHandler.getFileHandler().getSdatData();
 
@@ -17,6 +28,7 @@ public class EnergyData {
         eslDataBezug = FileHandler.getFileHandler().getZaehlerstandBezug();
 
     }
+
     public double getEslDataBezug() {
         return eslDataBezug;
     }

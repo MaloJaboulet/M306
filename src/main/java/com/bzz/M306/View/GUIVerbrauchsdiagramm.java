@@ -29,9 +29,12 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * An example of a time series chart create using JFreeChart.  For the most
- * part, default settings are used, except that the renderer is modified to
- * show filled shapes (as well as lines) at each data point.
+ * @author Sarah Frischknecht, Malo Jaboulet
+ * @version 1.0
+ * @since 05.10.2021
+ * <p>
+ * Das GUI der Applikation. Es werden die Daten der Files in mehrere Graphen umgewandelt.
+ * Man kann in die Graphen hinein zoomen und genauere Werte bekommen.
  */
 public class GUIVerbrauchsdiagramm extends ApplicationFrame {
 
@@ -67,10 +70,10 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
     private EnergyData energyData;
 
     /**
-     * A demonstration application showing how to create a simple time series
-     * chart.  This example uses monthly data.
+     * Der Konstruktor, er zeichnet das ganze GUI.
      *
-     * @param title the frame title.
+     * @param title      der Titel der Applikation
+     * @param energyData die Daten
      */
     public GUIVerbrauchsdiagramm(String title, EnergyData energyData) {
         super(title);
@@ -134,7 +137,6 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
         bExportCSV.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                EnergyData energyData = new EnergyData();
                 TreeMap<Long, csvData> map = FileHandler.getFileHandler().getCSVData();
                 try {
                     FileHandler.writeCSV(map);
@@ -148,7 +150,6 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
         bExportJSON.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                EnergyData energyData = new EnergyData();
                 TreeMap<Long, csvData> map = FileHandler.getFileHandler().getCSVData();
                 FileHandler.saveJSON(map);
                 lEmpty.setText("Daten wurden zum JSON exportiert \n" + "https://api.npoint.io/0dc854da1619aca3be45");
@@ -244,7 +245,7 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
         tDate.addKeyListener(new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {
-               checkDate(e);
+                checkDate(e);
             }
 
             @Override
@@ -266,6 +267,7 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
                     tDate.setForeground(Color.BLACK);
                 }
             }
+
             @Override
             public void focusLost(FocusEvent e) {
                 if (tDate.getText().isEmpty()) {
@@ -276,25 +278,23 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
         });
 
 
-
-
         verbrauchDiagramm.addActionListener(actionListenerDiagramm);
         zaehlerDiagramm.addActionListener(actionListenerDiagramm);
     }
 
 
     /**
-     * Creates a chart.
+     * Erstellt das Diagramm mit den Graphen.
      *
-     * @param dataset a dataset.
-     * @return A chart.
+     * @param dataset die Daten
+     * @return das Diagramm
      */
     private static JFreeChart createChart(XYDataset dataset) {
 
         chart = ChartFactory.createTimeSeriesChart(
-                "Stromzählerübersicht",  // title
-                "Datum",             // x-axis label
-                "kWh",   // y-axis label
+                "Stromzählerübersicht",      // Titel
+                "Datum",             // x-Achse label
+                "kWh",              // y-Achse label
                 dataset);
 
         chart.setBackgroundPaint(Color.WHITE);
@@ -324,16 +324,12 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
     }
 
     /**
-     * Creates a dataset, consisting of two series of monthly data.
+     * Erstellt die Graphen zu den relativen Bezüge und Einspeisungen.
      *
-     * @return The dataset.
+     * @param energyData die Daten
+     * @return die Daten für die Graphen
      */
     private static XYDataset createDatasetVerbrauchsdiagramm(EnergyData energyData) {
-        Date date = new Date();
-        long test = date.getTime();
-        Calendar cal = Calendar.getInstance();
-        int month = cal.get(Calendar.MONTH);
-
         TimeSeries s1 = new TimeSeries("Kauf von Strom");
 
         TreeMap<Long, Data> mapData = energyData.getSdatData();
@@ -347,14 +343,6 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
             s2.add(new FixedMillisecond(entry.getKey()), entry.getValue().getRelativeEinspeisung());
         }
 
-        // ******************************************************************
-        //  More than 150 demo applications are included with the JFreeChart
-        //  Developer Guide...for more information, see:
-        //
-        //  >   http://www.object-refinery.com/jfreechart/guide.html
-        //
-        // ******************************************************************
-
         dataset.addSeries(s1);
         dataset.addSeries(s2);
 
@@ -362,6 +350,12 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
 
     }
 
+    /**
+     * Erstellt die Graphen zu den Zählerständen der Einspeisung und des Bezugs.
+     *
+     * @param energyData die Daten
+     * @return die Daten für die Graphen
+     */
     private static XYDataset createDatasetZaehlerdiagramm(EnergyData energyData) {
 
         TimeSeries s3 = new TimeSeries("Bezug-Zählerdiagramm");
@@ -374,18 +368,8 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
             s4.add(new FixedMillisecond(entry.getKey()), (int) entry.getValue().getZaehlerstandEinspeisung());
         }
 
-
-        // ******************************************************************
-        //  More than 150 demo applications are included with the JFreeChart
-        //  Developer Guide...for more information, see:
-        //
-        //  >   http://www.object-refinery.com/jfreechart/guide.html
-        //
-        // ******************************************************************
-
         dataset.addSeries(s3);
         dataset.addSeries(s4);
-
 
         return dataset;
 
@@ -393,9 +377,10 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
 
 
     /**
-     * Creates a panel for the demo (used by SuperDemo.java).
+     * Erstellt ein Panel für das Diagramm.
      *
-     * @return A panel.
+     * @param energyData die Daten
+     * @return ein Panel
      */
     public static JPanel createPanel(EnergyData energyData) {
         chart = createChart(createDatasetVerbrauchsdiagramm(energyData));
@@ -407,13 +392,18 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
         return panel;
     }
 
+    /**
+     * Verändert das Datum, dass sich in der Mitte des Graphen befindet, somit kann pro Tag/Woche/Monat gewechselt werden.
+     *
+     * @param milliSeconds um wie viel sich der Graph verschieben muss
+     * @param hoch         ob das Datum hoch oder runter geht
+     */
     public void changeDate(long milliSeconds, boolean hoch) {
         XYPlot plot = chart.getXYPlot();
 
         long upperBound = (long) plot.getDomainAxis().getUpperBound();
         long lowerBound = (long) plot.getDomainAxis().getLowerBound();
         long center = (upperBound + lowerBound) / 2;
-
 
         long centerday;
         if (hoch) {
@@ -429,21 +419,26 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
         plot.getDomainAxis().setLowerBound(centerday - 86400000);
     }
 
-    public void checkDate(KeyEvent e){
+    /**
+     * Schaut, ob das eingegebene Datum gültig ist und obe es nicht ausserhalb der Daten ist.
+     *
+     * @param e das KeyEvent
+     */
+    public void checkDate(KeyEvent e) {
         tDate.setFocusable(true);
-        if (e.getKeyChar() == 0x0A){
+        if (e.getKeyChar() == 0x0A) {
             String text = tDate.getText();
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd.MM.yyyy");
+
             try {
                 Date date = simpleDateFormat.parse(text);
                 System.out.println(date.getTime());
-                if (date.getTime() > 1551388500000L && date.getTime() < 1630954800000L){
+                if (date.getTime() > 1551388500000L && date.getTime() < 1630954800000L) {
                     chart.getXYPlot().getDomainAxis().setUpperBound(date.getTime() + 86400000);
                     chart.getXYPlot().getDomainAxis().setLowerBound(date.getTime() - 86400000);
-                }else {
+                } else {
                     lEmpty2.setText("Es wurde eine flasches Datum eingegeben.");
                     lEmpty2.setForeground(Color.red);
-
                 }
 
             } catch (ParseException parseException) {
@@ -451,10 +446,6 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
                 lEmpty2.setForeground(Color.red);
             }
         }
-    }
-
-    public EnergyData getEnergyData() {
-        return energyData;
     }
 
     public JTextField gettDate() {
@@ -466,23 +457,18 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
     }
 
     /**
-     * Starting point for the demonstration application.
+     * Das Main. Hier wird das GUI gestartet.
      *
-     * @param args ignored.
+     * @param args
      */
     public static void main(String[] args) {
         EnergyData energyData = new EnergyData();
-        GUIVerbrauchsdiagramm demo = new GUIVerbrauchsdiagramm(
+        GUIVerbrauchsdiagramm guiVerbrauchsdiagramm = new GUIVerbrauchsdiagramm(
                 "Stromzähler", energyData);
 
-        //demo.pack();
-        UIUtils.centerFrameOnScreen(demo);
-        demo.setVisible(true);
+        //guiVerbrauchsdiagramm.pack();
+        UIUtils.centerFrameOnScreen(guiVerbrauchsdiagramm);
+        guiVerbrauchsdiagramm.setVisible(true);
 
     }
-
-    public JFrame getJFrame() {
-        return this;
-    }
-
 }

@@ -53,24 +53,6 @@ public class FileHandler {
 
     }
 
-    public TreeMap<Long, csvData> getCSVData() {
-        TreeMap<Long, csvData> csvDataMap = new TreeMap<>();
-        csvData csvData;
-        for (Map.Entry<Long, Data> data : sdatData.entrySet()) {
-            csvData = new csvData();
-            Date date = new Date(data.getKey());
-            DateFormat df = new SimpleDateFormat("dd:MM:yy:HH:mm:ss");
-            csvData.setDatum(String.valueOf(df.format(date)));
-            csvData.setZaehlerstandBezug(data.getValue().getZaehlerstandBezug());
-            csvData.setZaehlerstandEinspeisung(data.getValue().getZaehlerstandEinspeisung());
-            csvData.setRelativBezug(data.getValue().getRelativBezug());
-            csvData.setRelativeEinspeisung(data.getValue().getRelativeEinspeisung());
-            csvDataMap.put(data.getKey(), csvData);
-
-        }
-
-        return csvDataMap;
-    }
 
     /**
      * Liest alle SDAT-Files und holt die Daten aus ihnen heraus.
@@ -137,8 +119,6 @@ public class FileHandler {
                                 data.setRelativeEinspeisung(value);
 
                                 setZaehlerstandEinspeisung(data.getZaehlerstandEinspeisung());
-
-
                             } else {
                                 data.setRelativBezug(value);
 
@@ -207,9 +187,14 @@ public class FileHandler {
         }
     }
 
+    /**
+     * Convertiert die Daten des ESL- und SDAT-Files in eine CSV-Datei.
+     *
+     * @param map die Daten
+     * @throws IOException
+     */
     public static void writeCSV(TreeMap<Long, csvData> map) throws IOException {
         try {
-
             String anfangsBestandBezug = String.valueOf(FileHandler.getFileHandler().getAnfangbestandBezug());
             String anfangsBestandEinspeisung = String.valueOf(FileHandler.getFileHandler().getAnfangbestandEinspeiung());
 
@@ -234,12 +219,16 @@ public class FileHandler {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-
     }
 
+    /**
+     * Speichert die Daten der ESL- und SDAT-Files in ein JSON-File ab.
+     *
+     * @param map die Daten
+     */
     public static void saveJSON(TreeMap<Long, csvData> map) {
         try {
+
 
             URL url = new URL("https://api.npoint.io/0dc854da1619aca3be45");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -253,7 +242,7 @@ public class FileHandler {
 
             try (OutputStream os = connection.getOutputStream()) {
                 byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
-               // os.write(input);  Auskommentiert, weil es zu lange geht.
+                // os.write(input);  Auskommentiert, weil es zu lange geht.
             }
 
             /*try (BufferedReader br = new BufferedReader(
@@ -296,6 +285,29 @@ public class FileHandler {
             e.printStackTrace();
         }
         return milliSeconds;
+    }
+
+    /**
+     * Holt die CSV-Daten
+     * @return die Daten
+     */
+    public TreeMap<Long, csvData> getCSVData() {
+        TreeMap<Long, csvData> csvDataMap = new TreeMap<>();
+        csvData csvData;
+        for (Map.Entry<Long, Data> data : sdatData.entrySet()) {
+            csvData = new csvData();
+            Date date = new Date(data.getKey());
+            DateFormat df = new SimpleDateFormat("dd:MM:yy:HH:mm:ss");
+            csvData.setDatum(String.valueOf(df.format(date)));
+            csvData.setZaehlerstandBezug(data.getValue().getZaehlerstandBezug());
+            csvData.setZaehlerstandEinspeisung(data.getValue().getZaehlerstandEinspeisung());
+            csvData.setRelativBezug(data.getValue().getRelativBezug());
+            csvData.setRelativeEinspeisung(data.getValue().getRelativeEinspeisung());
+            csvDataMap.put(data.getKey(), csvData);
+
+        }
+
+        return csvDataMap;
     }
 
     /**
@@ -361,10 +373,20 @@ public class FileHandler {
         this.zaehlerstandEinspeisung = zaehlerstandEinspeisung;
     }
 
+    /**
+     * Holt den Anfangebestand des Bezugs
+     *
+     * @return der Bezug
+     */
     public double getAnfangbestandBezug() {
         return anfangbestandBezug;
     }
 
+    /**
+     * Holt den Anfangebestand der Einspeisung
+     *
+     * @return die Einspeisung
+     */
     public double getAnfangbestandEinspeiung() {
         return anfangbestandEinspeiung;
     }
