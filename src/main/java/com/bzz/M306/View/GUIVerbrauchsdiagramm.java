@@ -318,7 +318,6 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
         DateAxis axis = (DateAxis) plot.getDomainAxis();
         axis.setDateFormatOverride(new SimpleDateFormat("dd-MM-yyyy"));
 
-        System.out.println(axis.getRange());
         return chart;
 
     }
@@ -403,7 +402,7 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
 
         long upperBound = (long) plot.getDomainAxis().getUpperBound();
         long lowerBound = (long) plot.getDomainAxis().getLowerBound();
-        long center = (upperBound + lowerBound) / 2;
+        long center = (upperBound + lowerBound) / 2; //Mitte des Graphen
 
         long centerday;
         if (hoch) {
@@ -415,6 +414,7 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
         DateFormat df = new SimpleDateFormat("dd-MM-yyyy");
         lCurrentDate.setText(df.format(new Date(centerday)));
 
+        //Zoomt zu diesem Tag
         plot.getDomainAxis().setUpperBound(centerday + 86400000);
         plot.getDomainAxis().setLowerBound(centerday - 86400000);
     }
@@ -432,8 +432,8 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
 
             try {
                 Date date = simpleDateFormat.parse(text);
-                System.out.println(date.getTime());
                 if (date.getTime() > 1551388500000L && date.getTime() < 1630954800000L) {
+                    //Zoomt zu diesem Tag
                     chart.getXYPlot().getDomainAxis().setUpperBound(date.getTime() + 86400000);
                     chart.getXYPlot().getDomainAxis().setLowerBound(date.getTime() - 86400000);
                 } else {

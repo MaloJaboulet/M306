@@ -26,7 +26,6 @@ public class EnergyData {
 
         eslDataEinspeisung = FileHandler.getFileHandler().getZaehlerstandEinspeisung();
         eslDataBezug = FileHandler.getFileHandler().getZaehlerstandBezug();
-
     }
 
     public double getEslDataBezug() {
