@@ -17,8 +17,11 @@ import org.jfree.data.xy.XYDataset;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -139,7 +142,23 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
             public void actionPerformed(ActionEvent e) {
                 TreeMap<Long, csvData> map = FileHandler.getFileHandler().getCSVData();
                 try {
-                    FileHandler.writeCSV(map);
+                    JFileChooser fileChooser = new JFileChooser("./CSV");
+                    fileChooser.setDialogTitle("CSV-Datei speichern");
+                    fileChooser.setFileFilter(new FileNameExtensionFilter("*.csv","csv"));
+
+                    int userSelection = fileChooser.showSaveDialog(getFrame());
+
+                    if (userSelection == JFileChooser.APPROVE_OPTION) {
+                        File fileToSave = fileChooser.getSelectedFile();
+                        String path = fileToSave.getPath();
+                        if (!path.contains(".csv")){
+                            path = path +".csv";
+                        }
+                        FileHandler.writeCSV(map,path);
+                        System.out.println("Save as file: " + fileToSave.getAbsolutePath());
+                    }
+
+
                 } catch (IOException ioException) {
                     ioException.printStackTrace();
                 }
@@ -152,6 +171,31 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
             public void actionPerformed(ActionEvent e) {
                 TreeMap<Long, csvData> map = FileHandler.getFileHandler().getCSVData();
                 FileHandler.saveJSON(map);
+
+                try {
+                    JFileChooser fileChooser = new JFileChooser("./JSON");
+                    fileChooser.setDialogTitle("JSON-Datei speichern");
+                    fileChooser.setFileFilter(new FileNameExtensionFilter("*.json","json"));
+
+                    int userSelection = fileChooser.showSaveDialog(getFrame());
+
+                    if (userSelection == JFileChooser.APPROVE_OPTION) {
+                        File fileToSave = fileChooser.getSelectedFile();
+                        String path = fileToSave.getPath();
+                        if (!path.contains(".json")){
+                            path = path +".json";
+                        }
+                        FileWriter fileWriter = new FileWriter(path);
+                        fileWriter.write(FileHandler.saveJSON(map));
+                        fileWriter.flush();
+                        fileWriter.close();
+                        System.out.println("Save as file: " + fileToSave.getAbsolutePath());
+                    }
+
+
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
                 lEmpty.setText("Daten wurden zum JSON exportiert \n" + "https://api.npoint.io/0dc854da1619aca3be45");
             }
         });
@@ -405,6 +449,9 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
         long center = (upperBound + lowerBound) / 2; //Mitte des Graphen
 
         long centerday;
+        long ersterTag = energyData.getSdatData().firstEntry().getKey() - 86400000;
+        long letzterTag = energyData.getSdatData().lastEntry().getKey() + 86400000;
+
         if (hoch) {
             centerday = (center + milliSeconds);
         } else {
@@ -414,9 +461,11 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
         DateFormat df = new SimpleDateFormat("dd-MM-yyyy");
         lCurrentDate.setText(df.format(new Date(centerday)));
 
-        //Zoomt zu diesem Tag
-        plot.getDomainAxis().setUpperBound(centerday + 86400000);
-        plot.getDomainAxis().setLowerBound(centerday - 86400000);
+        if ((centerday - 86400000) > ersterTag && (centerday +86400000) < letzterTag ) {
+            //Zoomt zu diesem Tag
+            plot.getDomainAxis().setUpperBound(centerday + 86400000);
+            plot.getDomainAxis().setLowerBound(centerday - 86400000);
+        }
     }
 
     /**
@@ -432,7 +481,9 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
 
             try {
                 Date date = simpleDateFormat.parse(text);
-                if (date.getTime() > 1551388500000L && date.getTime() < 1630954800000L) {
+                long ersterTag = energyData.getSdatData().firstEntry().getKey();
+                long letzterTag = energyData.getSdatData().lastEntry().getKey();
+                if (date.getTime() > ersterTag && date.getTime() < letzterTag) {
                     //Zoomt zu diesem Tag
                     chart.getXYPlot().getDomainAxis().setUpperBound(date.getTime() + 86400000);
                     chart.getXYPlot().getDomainAxis().setLowerBound(date.getTime() - 86400000);
@@ -454,6 +505,10 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
 
     public JLabel getlEmpty2() {
         return lEmpty2;
+    }
+
+    public JFrame getFrame(){
+        return this;
     }
 
     /**

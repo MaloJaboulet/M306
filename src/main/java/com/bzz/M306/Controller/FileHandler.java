@@ -73,7 +73,7 @@ public class FileHandler {
             int index = 0;
 
             for (File filname : files) {
-                index ++;
+                index++;
                 Document document = builder.parse(filname); //Parsed das XML-File
                 document.getDocumentElement().normalize();
                 long milliSceonds = 0;
@@ -136,7 +136,7 @@ public class FileHandler {
                 }
 
             }
-            System.out.println("Anzahl SDAT-Files: "+index);
+            System.out.println("Anzahl SDAT-Files: " + index);
         } catch (ParserConfigurationException | IOException | SAXException e) {
             e.printStackTrace();
         }
@@ -199,12 +199,13 @@ public class FileHandler {
      * @param map die Daten
      * @throws IOException
      */
-    public static void writeCSV(TreeMap<Long, csvData> map) throws IOException {
+    public static FileWriter writeCSV(TreeMap<Long, csvData> map, String path) throws IOException {
         try {
             String anfangsBestandBezug = String.valueOf(FileHandler.getFileHandler().getAnfangbestandBezug());
             String anfangsBestandEinspeisung = String.valueOf(FileHandler.getFileHandler().getAnfangbestandEinspeiung());
 
-            FileWriter datalist = new FileWriter("DataList.csv");
+            //FileWriter datalist = new FileWriter("DataList.csv");
+            FileWriter datalist = new FileWriter(path);
 
             datalist.write("Anfangsbestand Bezug: " + anfangsBestandBezug + "\n\n");
             datalist.write("Anfangsbestand Einspeisung: " + anfangsBestandEinspeisung + "\n\n");
@@ -221,10 +222,13 @@ public class FileHandler {
                 Double zaehlerstandEinspeisung = entry.getValue().getZaehlerstandEinspeisung();
                 datalist.write("Zählerstandeinspeisung: " + String.valueOf(zaehlerstandEinspeisung) + "\n");
             }
+            datalist.flush();
             datalist.close();
+            return datalist;
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return null;
     }
 
     /**
@@ -232,7 +236,7 @@ public class FileHandler {
      *
      * @param map die Daten
      */
-    public static void saveJSON(TreeMap<Long, csvData> map) {
+    public static String saveJSON(TreeMap<Long, csvData> map) {
         try {
 
 
@@ -259,11 +263,14 @@ public class FileHandler {
                     response.append(responseLine.trim());
                 }
             }*/
-
+            System.out.println("Daten wurden exportiert");
+            return jsonInputString;
         } catch (Exception e) {
             e.printStackTrace();
+
         }
-        System.out.println("Daten wurden exportiert");
+
+        return null;
     }
 
     /**
