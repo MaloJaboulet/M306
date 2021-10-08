@@ -162,7 +162,7 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
                 } catch (IOException ioException) {
                     ioException.printStackTrace();
                 }
-                lEmpty.setText("Daten wurden in eine csv-File exportiert");
+                lEmpty.setText("Daten wurden in ein CSV-File exportiert");
             }
         });
 
@@ -487,6 +487,9 @@ public class GUIVerbrauchsdiagramm extends ApplicationFrame {
                     //Zoomt zu diesem Tag
                     chart.getXYPlot().getDomainAxis().setUpperBound(date.getTime() + 86400000);
                     chart.getXYPlot().getDomainAxis().setLowerBound(date.getTime() - 86400000);
+                    lEmpty2.setText("");
+                    DateFormat df = new SimpleDateFormat("dd-MM-yyyy");
+                    lCurrentDate.setText(df.format(date));
                 } else {
                     lEmpty2.setText("Es wurde eine flasches Datum eingegeben.");
                     lEmpty2.setForeground(Color.red);
